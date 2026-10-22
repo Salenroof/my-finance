@@ -24,11 +24,13 @@
     --expense: #dc2626; --expense-bg: #fee2e2; --warn: #f59e0b; --warn-bg: #fef3c7;
     --saving: #0ea5e9; --saving-bg: #e0f2fe;
     --shadow: 0 4px 12px rgba(0,0,0,0.05);
+    
+    /* Светлая тема - шапка белая */
     --header-bg: #ffffff;
+    --header-border: #e5e7eb;
     --header-text: #1a1a2e;
   }
   [data-theme="dark"] {
-    /* НОВЫЕ ЦВЕТА ИЗ ВАШЕГО СКРИНШОТА */
     --bg: #0d0e15; 
     --card: #161822; 
     --text: #f1f5f9; 
@@ -43,7 +45,11 @@
     --warn: #fbbf24; --warn-bg: rgba(251, 191, 36, 0.15);
     --saving: #38bdf8; --saving-bg: rgba(56, 189, 248, 0.15);
     --shadow: 0 4px 12px rgba(0,0,0,0.4);
-    --header-bg: #0d0e15; --header-text: #ffffff;
+    
+    /* ТЕМНАЯ ТЕМА - ГРАДИЕНТ В ШАПКЕ (как на фото) */
+    --header-bg: linear-gradient(135deg, #1c2438 0%, #0d0e15 100%);
+    --header-border: transparent; /* Убираем линию, чтобы шапка плавно сливалась */
+    --header-text: #ffffff;
   }
   * { box-sizing: border-box; margin: 0; padding: 0; -webkit-tap-highlight-color: transparent; }
   
@@ -61,7 +67,7 @@
     padding-top: calc(14px + env(safe-area-inset-top, 0px));
     display: flex; align-items: center; justify-content: space-between;
     position: sticky; top: 0; z-index: 100;
-    border-bottom: 1px solid var(--border);
+    border-bottom: 1px solid var(--header-border);
     transition: background 0.2s, color 0.2s;
   }
   .header-brand { 
@@ -474,7 +480,7 @@
       <button class="settings-btn danger" id="clearBtn">🗑 Удалить все данные</button>
     </div>
     <p style="text-align:center; color: var(--text-muted); font-size: 12px; margin-top: 20px; margin-bottom: 20px;">
-      Мои финансы v5.3 · Данные хранятся на вашем устройстве
+      Мои финансы v5.4 · Данные хранятся на вашем устройстве
     </p>
   </section>
 </main>
