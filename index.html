@@ -18,7 +18,7 @@
     --border: #e5e7eb; 
     --input-bg: #f0f2f5; 
     
-    /* Светлая тема (оставляем аккуратный синий) */
+    /* Светлая тема */
     --primary: #2b68ed; 
     --primary-dark: #1d4ed8;
     --primary-light: #eff4ff; 
@@ -28,23 +28,26 @@
     --saving: #0ea5e9; --saving-bg: #e0f2fe;
     --shadow: 0 4px 12px rgba(0,0,0,0.05);
     
-    --header-bg: #ffffff; 
+    --header-bg: transparent; 
     --header-text: #1a1a2e;
   }
   
   [data-theme="dark"] {
-    /* ЦВЕТА КАК НА ВАШЕМ СКРИНШОТЕ */
-    --bg: #0b111a; /* Глубокий темный фон */
-    --card: #161e2e; /* Фон карточек (чуть светлее) */
-    --text: #f1f5f9; 
-    --text-muted: #94a3b8;
-    --border: #2a3649; 
-    --input-bg: #222c3d; /* Плашки для инпутов и неактивных кнопок */
+    /* Градиентный фон как на картинке */
+    --bg: #05070c; 
+    --bg-gradient: linear-gradient(180deg, #101731 0%, #05070c 100%);
     
-    /* Насыщенный синий градиент для карточек и кнопок */
-    --primary: #4772f6; 
-    --primary-dark: #3557db;
-    --primary-light: rgba(71, 114, 246, 0.2);
+    /* Темные карточки как на картинке */
+    --card: #151a25; 
+    --text: #ffffff; 
+    --text-muted: #8e9bb3;
+    --border: #232a3a; 
+    --input-bg: #1e2433; 
+    
+    /* Яркий синий акцент */
+    --primary: #2e5bff; 
+    --primary-dark: #1e3ec4;
+    --primary-light: rgba(46, 91, 255, 0.15);
     
     /* Приглушенные цвета для темной темы */
     --income: #34d399; --income-bg: rgba(52, 211, 153, 0.15);
@@ -52,9 +55,10 @@
     --warn: #fbbf24; --warn-bg: rgba(251, 191, 36, 0.15);
     --saving: #38bdf8; --saving-bg: rgba(56, 189, 248, 0.15);
     
-    --shadow: 0 4px 12px rgba(0,0,0,0.3);
+    --shadow: 0 8px 24px rgba(0,0,0,0.4);
     
-    --header-bg: #151e2e; /* Темно-синяя шапка */
+    /* Шапка прозрачная для бесшовного градиента */
+    --header-bg: transparent; 
     --header-text: #ffffff;
   }
   * { box-sizing: border-box; margin: 0; padding: 0; -webkit-tap-highlight-color: transparent; }
@@ -62,9 +66,15 @@
   body {
     font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
     background: var(--bg); color: var(--text); min-height: 100vh;
-    transition: background 0.2s, color 0.2s; 
+    transition: background 0.3s ease, color 0.2s; 
     padding-top: 0;
     overflow-x: hidden;
+  }
+  
+  /* Применяем градиент на body только в темной теме */
+  [data-theme="dark"] body {
+    background: var(--bg-gradient);
+    background-attachment: fixed;
   }
   
   header {
@@ -74,6 +84,8 @@
     display: flex; align-items: center; justify-content: space-between;
     position: sticky; top: 0; z-index: 100;
     transition: background 0.2s, color 0.2s;
+    /* В темной теме убираем любые границы, чтобы был бесшовный переход */
+    border-bottom: none; 
   }
   .header-brand { 
     display: flex; align-items: center; gap: 12px; 
@@ -90,7 +102,7 @@
   
   main { max-width: 640px; margin: 0 auto; padding: 16px; padding-bottom: 100px; }
   
-  /* Глубокий градиент для карточки баланса */
+  /* Карточка баланса остается синей, но с более глубоким градиентом */
   .balance-card {
     background: linear-gradient(135deg, var(--primary), var(--primary-dark)); color: white;
     border-radius: 16px; padding: 16px 20px; margin-bottom: 16px; box-shadow: var(--shadow);
@@ -99,14 +111,14 @@
   .balance-top { display: flex; justify-content: space-between; align-items: flex-start; width: 100%; }
   .balance-col { flex: 1; cursor: pointer; transition: opacity 0.2s; }
   .balance-col:hover { opacity: 0.8; }
-  .balance-col.left { border-right: 1px solid rgba(255,255,255,0.3); padding-right: 16px; }
+  .balance-col.left { border-right: 1px solid rgba(255,255,255,0.2); padding-right: 16px; }
   .balance-col.right { padding-left: 16px; }
   .balance-card .label { font-size: 13px; opacity: 0.9; display: flex; align-items: center; gap: 4px; }
   .balance-card .value { font-size: 24px; font-weight: bold; margin: 4px 0; white-space: nowrap; }
   .balance-card .sub-row { display: flex; gap: 8px; font-size: 12px; opacity: 0.8; flex-wrap: wrap; }
 
   .capital-details {
-    margin-top: 12px; padding-top: 12px; border-top: 1px solid rgba(255,255,255,0.3); display: none;
+    margin-top: 12px; padding-top: 12px; border-top: 1px solid rgba(255,255,255,0.2); display: none;
   }
   .capital-details.show { display: block; }
   .cap-detail-item {
@@ -124,8 +136,12 @@
     position: fixed; bottom: 0; left: 0; right: 0; display: flex; background: var(--card);
     padding: 6px 0 calc(6px + env(safe-area-inset-bottom, 0px)) 0;
     z-index: 100; box-shadow: 0 -2px 10px rgba(0,0,0,0.05);
+    transition: background 0.2s;
   }
-  [data-theme="dark"] .tabs { box-shadow: 0 -2px 10px rgba(0,0,0,0.2); }
+  [data-theme="dark"] .tabs { 
+    box-shadow: 0 -2px 20px rgba(0,0,0,0.5); 
+    border-top: 1px solid var(--border);
+  }
   .tabs button {
     flex: 1; display: flex; flex-direction: column; align-items: center; justify-content: center;
     background: none; border: none; color: var(--text-muted);
@@ -138,14 +154,14 @@
   section { display: none; }
   section.active { display: block; }
   
+  /* Темные блоки как на картинке */
   .card {
-    background: var(--card); border-radius: 16px; padding: 16px; margin-bottom: 12px; border: none; box-shadow: var(--shadow);
+    background: var(--card); border-radius: 20px; padding: 16px; margin-bottom: 16px; border: none; box-shadow: var(--shadow);
   }
   
-  /* Кнопки переключения плашек (темные с цветной обводкой при активации) */
   .type-toggle { display: flex; gap: 8px; margin-bottom: 12px; }
   .type-toggle button {
-    flex: 1; padding: 10px; border: none; background: var(--input-bg); color: var(--text-muted); border-radius: 10px; font-weight: 500; cursor: pointer; transition: all 0.2s; font-family: inherit; font-size: 14px;
+    flex: 1; padding: 10px; border: none; background: var(--input-bg); color: var(--text-muted); border-radius: 12px; font-weight: 500; cursor: pointer; transition: all 0.2s; font-family: inherit; font-size: 14px;
   }
   .type-toggle button[data-type="expense"].active { background: var(--expense-bg); color: var(--expense); }
   .type-toggle button[data-type="income"].active { background: var(--income-bg); color: var(--income); }
@@ -154,18 +170,18 @@
   
   .currency-toggle { display: flex; gap: 8px; margin-bottom: 12px; }
   .currency-toggle button {
-    flex: 1; padding: 8px; border: none; background: var(--input-bg); color: var(--text-muted); border-radius: 10px; font-weight: 500; cursor: pointer; transition: all 0.2s; font-family: inherit; font-size: 14px;
+    flex: 1; padding: 8px; border: none; background: var(--input-bg); color: var(--text-muted); border-radius: 12px; font-weight: 500; cursor: pointer; transition: all 0.2s; font-family: inherit; font-size: 14px;
   }
   .currency-toggle button.active { background: var(--primary-light); color: var(--primary); }
   
   .form-row { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; margin-bottom: 12px; }
   input, select {
-    padding: 12px; border: none; border-radius: 10px; font-size: 15px; background: var(--input-bg); color: var(--text); width: 100%; outline: none; transition: box-shadow 0.2s; font-family: inherit;
+    padding: 12px; border: none; border-radius: 12px; font-size: 15px; background: var(--input-bg); color: var(--text); width: 100%; outline: none; transition: box-shadow 0.2s; font-family: inherit;
   }
   input:focus, select:focus { box-shadow: 0 0 0 2px var(--primary-light); }
   
   .select-btn {
-    width: 100%; padding: 12px; border: none; border-radius: 10px;
+    width: 100%; padding: 12px; border: none; border-radius: 12px;
     font-size: 15px; background: var(--input-bg); color: var(--text);
     cursor: pointer; display: flex; justify-content: space-between; align-items: center;
     font-family: inherit; text-align: left;
@@ -179,7 +195,7 @@
     border-bottom: 1px solid var(--border); cursor: pointer;
   }
   .cat-picker-item:last-child { border-bottom: none; }
-  .cat-picker-item:active { background: var(--bg); }
+  .cat-picker-item:active { background: var(--input-bg); }
   
   .cat-picker-icon {
     width: 36px; height: 36px; border-radius: 10px; flex-shrink: 0;
@@ -196,7 +212,7 @@
   
   /* Кнопка Добавить - глубокий градиент */
   .submit-btn {
-    width: 100%; padding: 14px; background: linear-gradient(135deg, var(--primary), var(--primary-dark)); color: white; border: none; border-radius: 10px; font-size: 15px; font-weight: 600; cursor: pointer; transition: opacity 0.2s; font-family: inherit;
+    width: 100%; padding: 14px; background: linear-gradient(135deg, var(--primary), var(--primary-dark)); color: white; border: none; border-radius: 12px; font-size: 15px; font-weight: 600; cursor: pointer; transition: opacity 0.2s; font-family: inherit;
   }
   .submit-btn:hover { opacity: 0.9; }
   
@@ -210,7 +226,7 @@
     display: flex; align-items: center; gap: 12px; padding: 12px; border-bottom: 1px solid var(--border); cursor: pointer;
   }
   .item:last-child { border-bottom: none; }
-  .item:hover { background: var(--bg); }
+  .item:hover { background: var(--input-bg); }
   .item .cat-icon {
     width: 42px; height: 42px; display: flex; align-items: center; justify-content: center; border-radius: 12px; flex-shrink: 0; font-size: 22px;
   }
@@ -229,29 +245,29 @@
   .empty { text-align: center; padding: 40px 20px; color: var(--text-muted); font-size: 14px; }
   
   .chart-card {
-    background: var(--card); border-radius: 16px; padding: 16px; margin-bottom: 12px; border: none; box-shadow: var(--shadow);
+    background: var(--card); border-radius: 20px; padding: 16px; margin-bottom: 16px; border: none; box-shadow: var(--shadow);
   }
   .chart-card h3 { font-size: 14px; margin-bottom: 12px; color: var(--text-muted); font-weight: 500; }
   .chart-wrapper { position: relative; height: 260px; }
 
   .modal-overlay {
-    position: fixed; top: 0; left: 0; right: 0; bottom: 0; background: rgba(0,0,0,0.6); z-index: 2000; display: none; align-items: center; justify-content: center; padding: 20px; backdrop-filter: blur(2px);
+    position: fixed; top: 0; left: 0; right: 0; bottom: 0; background: rgba(0,0,0,0.7); z-index: 2000; display: none; align-items: center; justify-content: center; padding: 20px; backdrop-filter: blur(4px);
   }
   .modal-content {
-    background: var(--card); border-radius: 16px; padding: 20px; width: 100%; max-width: 400px; box-shadow: 0 10px 25px rgba(0,0,0,0.3);
+    background: var(--card); border-radius: 20px; padding: 20px; width: 100%; max-width: 400px; box-shadow: 0 10px 30px rgba(0,0,0,0.5);
   }
   .modal-content h3 { margin-bottom: 16px; font-size: 18px; }
   .modal-content input { margin-bottom: 12px; font-size: 16px; }
   .modal-actions { display: flex; gap: 10px; justify-content: flex-end; margin-top: 16px; }
-  .modal-actions .cancel-btn { width: auto; padding: 10px 16px; border: none; border-radius: 8px; margin: 0; background: var(--input-bg); color: var(--text); }
-  .modal-actions .submit-btn { width: auto; padding: 10px 24px; border-radius: 8px; }
+  .modal-actions .cancel-btn { width: auto; padding: 10px 16px; border: none; border-radius: 10px; margin: 0; background: var(--input-bg); color: var(--text); }
+  .modal-actions .submit-btn { width: auto; padding: 10px 24px; border-radius: 10px; }
 
   .budget-total {
-    background: linear-gradient(135deg, var(--primary), var(--primary-dark)); color: white; border-radius: 16px; padding: 18px; margin-bottom: 12px; box-shadow: var(--shadow);
+    background: linear-gradient(135deg, var(--primary), var(--primary-dark)); color: white; border-radius: 20px; padding: 20px; margin-bottom: 16px; box-shadow: var(--shadow);
   }
   .budget-total .label { font-size: 13px; opacity: 0.9; }
   .budget-total .value { font-size: 22px; font-weight: bold; margin: 6px 0 10px; }
-  .budget-total .progress-bar { background: rgba(255,255,255,0.25); height: 8px; border-radius: 4px; overflow: hidden; }
+  .budget-total .progress-bar { background: rgba(255,255,255,0.2); height: 8px; border-radius: 4px; overflow: hidden; }
   .budget-total .progress-fill { height: 100%; background: white; border-radius: 4px; transition: width 0.3s; }
   .budget-total .progress-fill.warn { background: #fbbf24; }
   .budget-total .progress-fill.danger { background: #fca5a5; }
@@ -261,7 +277,7 @@
     display: flex; align-items: center; gap: 12px; padding: 14px; border-bottom: 1px solid var(--border); cursor: pointer;
   }
   .budget-item:last-child { border-bottom: none; }
-  .budget-item:hover { background: var(--bg); }
+  .budget-item:hover { background: var(--input-bg); }
   .budget-item .cat-icon {
     width: 42px; height: 42px; display: flex; align-items: center; justify-content: center; border-radius: 12px; flex-shrink: 0; font-size: 22px;
   }
@@ -278,23 +294,23 @@
   .budget-item .progress-fill.danger { background: var(--expense); }
 
   .settings-group {
-    background: var(--card); border-radius: 16px; overflow: hidden; margin-bottom: 12px; border: none; box-shadow: var(--shadow);
+    background: var(--card); border-radius: 20px; overflow: hidden; margin-bottom: 16px; border: none; box-shadow: var(--shadow);
   }
   .settings-btn {
     display: flex; align-items: center; gap: 12px; width: 100%; padding: 14px 16px; background: none; border: none; border-bottom: 1px solid var(--border); color: var(--text); font-size: 15px; cursor: pointer; text-align: left; font-family: inherit;
   }
   .settings-btn:last-child { border-bottom: none; }
-  .settings-btn:hover { background: var(--bg); }
+  .settings-btn:hover { background: var(--input-bg); }
   .settings-btn.danger { color: var(--expense); }
   .install-banner {
-    background: linear-gradient(135deg, var(--primary), var(--primary-dark)); color: white; border-radius: 16px; padding: 16px; margin-bottom: 12px; display: none;
+    background: linear-gradient(135deg, var(--primary), var(--primary-dark)); color: white; border-radius: 20px; padding: 16px; margin-bottom: 16px; display: none;
   }
   .install-banner.show { display: block; }
   .install-banner button {
     background: white; color: var(--primary); border: none; padding: 8px 16px; border-radius: 8px; font-weight: 600; cursor: pointer; margin-top: 8px;
   }
   .toast {
-    position: fixed; bottom: 90px; left: 50%; transform: translate(-50%, 20px); opacity: 0; pointer-events: none; background: var(--text); color: var(--card); padding: 12px 20px; border-radius: 10px; font-size: 14px; transition: transform 0.3s, opacity 0.3s; z-index: 1000;
+    position: fixed; bottom: 90px; left: 50%; transform: translate(-50%, 20px); opacity: 0; pointer-events: none; background: var(--text); color: var(--bg); padding: 12px 20px; border-radius: 10px; font-size: 14px; transition: transform 0.3s, opacity 0.3s; z-index: 1000;
   }
   .toast.show { transform: translate(-50%, 0); opacity: 1; }
 
@@ -302,7 +318,7 @@
     align-items: flex-end; padding: 0;
   }
   .bottom-sheet .modal-content {
-    max-width: 100%; border-radius: 20px 20px 0 0; max-height: 80vh; overflow-y: auto; padding-bottom: calc(20px + env(safe-area-inset-bottom, 0px));
+    max-width: 100%; border-radius: 24px 24px 0 0; max-height: 80vh; overflow-y: auto; padding-bottom: calc(20px + env(safe-area-inset-bottom, 0px));
   }
 </style>
 </head>
@@ -359,7 +375,7 @@
     <div id="savingsDetails" class="capital-details"></div>
     <div id="debtsDetails" class="capital-details"></div>
 
-    <div style="margin-top: 16px; padding-top: 12px; border-top: 1px solid rgba(255,255,255,0.3); display: flex; justify-content: space-between; align-items: center; width: 100%;">
+    <div style="margin-top: 16px; padding-top: 12px; border-top: 1px solid rgba(255,255,255,0.2); display: flex; justify-content: space-between; align-items: center; width: 100%;">
       <span style="font-size: 14px; opacity: 0.9;">Итог (Чистый капитал):</span>
       <span style="font-size: 16px; font-weight: bold; text-align: right;" id="topNetWorth">0 ₽ / 0 $</span>
     </div>
@@ -410,7 +426,7 @@
       <button data-chart-period="month" class="active">Этот месяц</button>
       <button data-chart-period="week">Эта неделя</button>
     </div>
-    <div style="background: var(--warn-bg); color: var(--warn); padding: 10px; border-radius: 8px; margin-bottom: 12px; font-size: 13px; text-align: center;">
+    <div style="background: var(--input-bg); color: var(--text-muted); padding: 10px; border-radius: 12px; margin-bottom: 16px; font-size: 13px; text-align: center;">
       Графики строятся только по операциям в рублях (₽).
     </div>
     <div class="chart-card">
@@ -433,7 +449,7 @@
       <div class="pct" id="budgetTotalPct"></div>
     </div>
     
-    <div class="card" style="padding: 0; margin-bottom: 12px;">
+    <div class="card" style="padding: 0; margin-bottom: 16px;">
       <div id="budgetList"></div>
     </div>
 
@@ -488,7 +504,7 @@
       <button class="settings-btn danger" id="clearBtn">🗑 Удалить все данные</button>
     </div>
     <p style="text-align:center; color: var(--text-muted); font-size: 12px; margin-top: 20px; margin-bottom: 20px;">
-      Мои финансы v5.6 · Данные хранятся на вашем устройстве
+      Мои финансы v5.7 · Данные хранятся на вашем устройстве
     </p>
   </section>
 </main>
@@ -1084,14 +1100,14 @@
     state.transactions.filter(t => t.type === 'expense' && (t.currency || 'RUB') === 'RUB' && isInPeriod(t.date, state.chartPeriod))
       .forEach(t => { data[t.category] = (data[t.category] || 0) + t.amount; });
     const labels = Object.keys(data), values = Object.values(data);
-    const textColor = isDark() ? '#94a3b8' : '#6b7280';
+    const textColor = isDark() ? '#8e9bb3' : '#6b7280';
     const isEmpty = labels.length === 0;
 
     state.pieChart = new Chart(ctx, {
       type: 'doughnut',
       data: {
         labels: isEmpty ? ['Нет данных'] : labels,
-        datasets: [{ data: isEmpty ? [1] : values, backgroundColor: isEmpty ? [isDark() ? '#334155' : '#e5e7eb'] : CHART_COLORS, borderWidth: 0, hoverOffset: isEmpty ? 0 : 6 }]
+        datasets: [{ data: isEmpty ? [1] : values, backgroundColor: isEmpty ? [isDark() ? '#232a3a' : '#e5e7eb'] : CHART_COLORS, borderWidth: 0, hoverOffset: isEmpty ? 0 : 6 }]
       },
       options: { responsive: true, maintainAspectRatio: false, cutout: '60%', plugins: { legend: { display: !isEmpty, position: 'bottom', labels: { color: textColor, padding: 12, font: { size: 12 } } }, tooltip: { enabled: !isEmpty, callbacks: { label: c => `${c.label}: ${fmt(c.raw, 'RUB')}` } } } }
     });
@@ -1112,8 +1128,8 @@
       const m = months.find(x => x.year === td.getFullYear() && x.month === td.getMonth());
       if (m) t.type === 'income' ? m.income += t.amount : m.expense += t.amount;
     });
-    const textColor = isDark() ? '#94a3b8' : '#6b7280';
-    const gridColor = isDark() ? '#334155' : '#e5e7eb';
+    const textColor = isDark() ? '#8e9bb3' : '#6b7280';
+    const gridColor = isDark() ? '#232a3a' : '#e5e7eb';
     state.barChart = new Chart(ctx, {
       type: 'bar',
       data: { labels: months.map(m => m.label), datasets: [ { label: 'Доходы', data: months.map(m => m.income), backgroundColor: '#10b981', borderRadius: 6 }, { label: 'Расходы', data: months.map(m => m.expense), backgroundColor: '#ef4444', borderRadius: 6 } ] },
