@@ -24,35 +24,21 @@
     --expense: #dc2626; --expense-bg: #fee2e2; --warn: #f59e0b; --warn-bg: #fef3c7;
     --saving: #0ea5e9; --saving-bg: #e0f2fe;
     --shadow: 0 4px 12px rgba(0,0,0,0.05);
-    
-    /* Светлая тема - шапка белая */
     --header-bg: #ffffff;
-    --header-border: #e5e7eb;
     --header-text: #1a1a2e;
   }
   [data-theme="dark"] {
-    --bg: #0d0e15; 
-    --card: #161822; 
-    --text: #f1f5f9; 
-    --text-muted: #8e95a5;
-    --border: #242636; 
-    --input-bg: #1f2132; 
-    
-    /* НОВЫЙ ЦВЕТ ИЗ ВАШЕГО СКРИНШОТА */
-    --primary: #5b6cf6; 
-    --primary-dark: #4a59e0;
-    --primary-light: rgba(91, 108, 246, 0.15);
-    
-    --income: #34d399; --income-bg: rgba(52, 211, 153, 0.15);
-    --expense: #f87171; --expense-bg: rgba(248, 113, 113, 0.15); 
-    --warn: #fbbf24; --warn-bg: rgba(251, 191, 36, 0.15);
-    --saving: #38bdf8; --saving-bg: rgba(56, 189, 248, 0.15);
-    --shadow: 0 4px 12px rgba(0,0,0,0.4);
-    
-    /* ТЕМНАЯ ТЕМА - ГРАДИЕНТ В ШАПКЕ */
-    --header-bg: linear-gradient(135deg, #1c2438 0%, #0d0e15 100%);
-    --header-border: transparent;
-    --header-text: #ffffff;
+    --bg: #0f172a; --card: #1e293b; --text: #f1f5f9; --text-muted: #94a3b8;
+    --border: #334155; 
+    --input-bg: #2a374f; 
+    --primary: #60a5fa; --primary-dark: #3b82f6;
+    --primary-light: rgba(96, 165, 250, 0.15);
+    --income: #34d399; --income-bg: rgba(52, 211, 153, 0.2);
+    --expense: #f87171; --expense-bg: rgba(248, 113, 113, 0.2); 
+    --warn: #fbbf24; --warn-bg: rgba(251, 191, 36, 0.2);
+    --saving: #38bdf8; --saving-bg: rgba(56, 189, 248, 0.2);
+    --shadow: 0 4px 12px rgba(0,0,0,0.2);
+    --header-bg: #1a2235; --header-text: #ffffff;
   }
   * { box-sizing: border-box; margin: 0; padding: 0; -webkit-tap-highlight-color: transparent; }
   
@@ -64,13 +50,13 @@
     overflow-x: hidden;
   }
   
+  /* УБРАНА ПОЛОСКА СНИЗУ ШАПКИ */
   header {
     background: var(--header-bg); color: var(--header-text);
     padding: 14px 20px;
     padding-top: calc(14px + env(safe-area-inset-top, 0px));
     display: flex; align-items: center; justify-content: space-between;
     position: sticky; top: 0; z-index: 100;
-    border-bottom: 1px solid var(--header-border);
     transition: background 0.2s, color 0.2s;
   }
   .header-brand { 
@@ -117,12 +103,13 @@
   .cap-detail-item .del { color: rgba(255,255,255,0.6); padding: 0 8px; margin-left: 4px; font-size: 18px; }
   .cap-detail-item .del:hover { color: #ffb3b3; }
 
+  /* УБРАНА ПОЛОСКА СВЕРХУ НИЖНЕГО МЕНЮ */
   .tabs {
     position: fixed; bottom: 0; left: 0; right: 0; display: flex; background: var(--card);
-    border-top: 1px solid var(--border); padding: 6px 0 calc(6px + env(safe-area-inset-bottom, 0px)) 0;
+    padding: 6px 0 calc(6px + env(safe-area-inset-bottom, 0px)) 0;
     z-index: 100; box-shadow: 0 -2px 10px rgba(0,0,0,0.05);
   }
-  [data-theme="dark"] .tabs { box-shadow: 0 -2px 10px rgba(0,0,0,0.3); }
+  [data-theme="dark"] .tabs { box-shadow: 0 -2px 10px rgba(0,0,0,0.2); }
   .tabs button {
     flex: 1; display: flex; flex-direction: column; align-items: center; justify-content: center;
     background: none; border: none; color: var(--text-muted);
@@ -230,7 +217,7 @@
   .chart-wrapper { position: relative; height: 260px; }
 
   .modal-overlay {
-    position: fixed; top: 0; left: 0; right: 0; bottom: 0; background: rgba(0,0,0,0.6); z-index: 2000; display: none; align-items: center; justify-content: center; padding: 20px; backdrop-filter: blur(4px);
+    position: fixed; top: 0; left: 0; right: 0; bottom: 0; background: rgba(0,0,0,0.5); z-index: 2000; display: none; align-items: center; justify-content: center; padding: 20px; backdrop-filter: blur(2px);
   }
   .modal-content {
     background: var(--card); border-radius: 16px; padding: 20px; width: 100%; max-width: 400px; box-shadow: 0 10px 25px rgba(0,0,0,0.2);
@@ -289,7 +276,7 @@
     background: white; color: var(--primary); border: none; padding: 8px 16px; border-radius: 8px; font-weight: 600; cursor: pointer; margin-top: 8px;
   }
   .toast {
-    position: fixed; bottom: 90px; left: 50%; transform: translate(-50%, 20px); opacity: 0; pointer-events: none; background: var(--text); color: var(--bg); padding: 12px 20px; border-radius: 10px; font-size: 14px; transition: transform 0.3s, opacity 0.3s; z-index: 1000;
+    position: fixed; bottom: 90px; left: 50%; transform: translate(-50%, 20px); opacity: 0; pointer-events: none; background: var(--text); color: var(--card); padding: 12px 20px; border-radius: 10px; font-size: 14px; transition: transform 0.3s, opacity 0.3s; z-index: 1000;
   }
   .toast.show { transform: translate(-50%, 0); opacity: 1; }
 
@@ -483,7 +470,7 @@
       <button class="settings-btn danger" id="clearBtn">🗑 Удалить все данные</button>
     </div>
     <p style="text-align:center; color: var(--text-muted); font-size: 12px; margin-top: 20px; margin-bottom: 20px;">
-      Мои финансы v5.5 · Данные хранятся на вашем устройстве
+      Мои финансы v5.3 · Данные хранятся на вашем устройстве
     </p>
   </section>
 </main>
