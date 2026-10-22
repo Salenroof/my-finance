@@ -588,7 +588,7 @@
     </div>
     
     <p style="text-align:center; color: var(--text-muted); font-size: 12px; margin-top: 20px; margin-bottom: 20px;">
-      Мои финансы v6.1 · Данные хранятся на вашем устройстве
+      Мои финансы v6.2 · Данные хранятся на вашем устройстве
     </p>
   </section>
 
@@ -1373,6 +1373,33 @@
     $('headerTitle').style.display = 'none';
   };
 
+  // ОБРАБОТКА СВАЙПА ДЛЯ ВОЗВРАТА
+  function setupSwipeBack() {
+    let touchStartX = 0;
+    let touchStartY = 0;
+
+    document.addEventListener('touchstart', e => {
+      if (!$('data-management').classList.contains('active')) return;
+      touchStartX = e.changedTouches[0].screenX;
+      touchStartY = e.changedTouches[0].screenY;
+    }, { passive: true });
+
+    document.addEventListener('touchend', e => {
+      if (!$('data-management').classList.contains('active')) return;
+
+      const touchEndX = e.changedTouches[0].screenX;
+      const touchEndY = e.changedTouches[0].screenY;
+
+      const deltaX = touchEndX - touchStartX;
+      const deltaY = Math.abs(touchEndY - touchStartY);
+
+      // Если свайп вправо (от 60px) и вертикальное отклонение небольшое
+      if (deltaX > 60 && deltaY < 50) {
+        closeDataManagement();
+      }
+    }, { passive: true });
+  }
+
   function setupFilters() {
     document.querySelectorAll('[data-filter-type]').forEach(btn => {
       btn.onclick = () => { state.filterType = btn.dataset.filterType; document.querySelectorAll('[data-filter-type]').forEach(b => b.classList.toggle('active', b.dataset.filterType === state.filterType)); renderList(); };
@@ -1454,7 +1481,7 @@
 
   function init() {
     sanitizeBudgets();
-    setupTheme(); setupTabs(); setupForms(); setupBudgets(); setupFilters(); setupSettings(); setupPWA(); setupModal();
+    setupTheme(); setupTabs(); setupForms(); setupBudgets(); setupFilters(); setupSettings(); setupPWA(); setupModal(); setupSwipeBack();
     renderCategories(); renderCapCategories(); renderAll();
   }
 
