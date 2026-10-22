@@ -1,4 +1,4 @@
-const CACHE_NAME = 'finance-v41';
+const CACHE_NAME = 'finance-v42';
 
 const ASSETS = [
   './',
@@ -8,6 +8,13 @@ const ASSETS = [
   './burger.png',
   './car.png',
   './metro.png',
+  './ach_250k.png',
+  './ach_500k.png',
+  './ach_750k.png',
+  './ach_1m.png',
+  './ach_1.5m.png',
+  './ach_2m.png',
+  './ach_5m.png',
   'https://unpkg.com/@phosphor-icons/web',
   'https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js'
 ];
