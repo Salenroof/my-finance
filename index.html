@@ -28,7 +28,8 @@
     --saving: #0ea5e9; --saving-bg: #e0f2fe;
     --shadow: 0 4px 12px rgba(0,0,0,0.05);
     
-    --header-bg: transparent; 
+    /* Шапка в светлой теме */
+    --header-bg: rgba(245, 245, 247, 0.85); 
     --header-text: #1a1a2e;
   }
   
@@ -57,8 +58,8 @@
     
     --shadow: 0 8px 24px rgba(0,0,0,0.4);
     
-    /* Шапка прозрачная для бесшовного градиента */
-    --header-bg: transparent; 
+    /* Полупрозрачная шапка для эффекта матового стекла */
+    --header-bg: rgba(16, 23, 49, 0.75); 
     --header-text: #ffffff;
   }
   * { box-sizing: border-box; margin: 0; padding: 0; -webkit-tap-highlight-color: transparent; }
@@ -71,10 +72,9 @@
     overflow-x: hidden;
   }
   
-  /* Применяем градиент на body только в темной теме */
+  /* Применяем градиент на body */
   [data-theme="dark"] body {
     background: var(--bg-gradient);
-    background-attachment: fixed;
   }
   
   header {
@@ -82,10 +82,13 @@
     padding: 14px 20px;
     padding-top: calc(14px + env(safe-area-inset-top, 0px));
     display: flex; align-items: center; justify-content: space-between;
-    position: sticky; top: 0; z-index: 100;
+    position: sticky; top: 0; z-index: 1000;
     transition: background 0.2s, color 0.2s;
-    /* В темной теме убираем любые границы, чтобы был бесшовный переход */
-    border-bottom: none; 
+    
+    /* Эффект матового стекла (блюр) */
+    backdrop-filter: blur(16px);
+    -webkit-backdrop-filter: blur(16px);
+    border-bottom: 1px solid var(--border);
   }
   .header-brand { 
     display: flex; align-items: center; gap: 12px; 
@@ -135,7 +138,7 @@
   .tabs {
     position: fixed; bottom: 0; left: 0; right: 0; display: flex; background: var(--card);
     padding: 6px 0 calc(6px + env(safe-area-inset-bottom, 0px)) 0;
-    z-index: 100; box-shadow: 0 -2px 10px rgba(0,0,0,0.05);
+    z-index: 1000; box-shadow: 0 -2px 10px rgba(0,0,0,0.05);
     transition: background 0.2s;
   }
   [data-theme="dark"] .tabs { 
@@ -154,7 +157,6 @@
   section { display: none; }
   section.active { display: block; }
   
-  /* Темные блоки как на картинке */
   .card {
     background: var(--card); border-radius: 20px; padding: 16px; margin-bottom: 16px; border: none; box-shadow: var(--shadow);
   }
@@ -504,7 +506,7 @@
       <button class="settings-btn danger" id="clearBtn">🗑 Удалить все данные</button>
     </div>
     <p style="text-align:center; color: var(--text-muted); font-size: 12px; margin-top: 20px; margin-bottom: 20px;">
-      Мои финансы v5.7 · Данные хранятся на вашем устройстве
+      Мои финансы v5.8 · Данные хранятся на вашем устройстве
     </p>
   </section>
 </main>
