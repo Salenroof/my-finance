@@ -90,7 +90,7 @@
     background: var(--header-bg); color: var(--header-text);
     padding: 14px 20px;
     padding-top: calc(14px + env(safe-area-inset-top, 0px));
-    display: flex; align-items: center; justify-content: flex-start; /* Изменено для кнопки назад */
+    display: flex; align-items: center; justify-content: flex-start;
     position: sticky; top: 0; z-index: 1000;
     transition: background 0.2s, color 0.2s;
     backdrop-filter: blur(16px);
@@ -105,14 +105,28 @@
   }
   .header-brand svg { width: 42px; height: 28px; }
   
-  /* Кнопка Назад (скрыта по умолчанию) */
+  /* Кнопка Назад */
   .back-btn {
     background: none; border: none; font-size: 24px; color: var(--header-text);
     cursor: pointer; padding: 0; display: none; align-items: center; justify-content: center;
   }
   
-  main { max-width: 640px; margin: 0 auto; padding: 16px; padding-bottom: 100px; }
+  main { max-width: 640px; margin: 0 auto; padding: 16px; padding-bottom: 100px; position: relative; overflow-x: hidden; }
   
+  /* АНИМАЦИИ ЭКРАНОВ */
+  @keyframes slideInRight {
+    from { transform: translateX(100%); opacity: 0; }
+    to { transform: translateX(0); opacity: 1; }
+  }
+  @keyframes slideOutRight {
+    from { transform: translateX(0); opacity: 1; }
+    to { transform: translateX(100%); opacity: 0; }
+  }
+  .sub-screen { display: none; }
+  .sub-screen.active { display: block; }
+  .sub-screen.slide-in { animation: slideInRight 0.25s cubic-bezier(0.2, 0.8, 0.2, 1) forwards; }
+  .sub-screen.slide-out { animation: slideOutRight 0.25s cubic-bezier(0.2, 0.8, 0.2, 1) forwards; }
+
   .balance-card {
     background: linear-gradient(135deg, var(--primary), var(--primary-dark)); color: white;
     border-radius: 16px; padding: 16px 20px; margin-bottom: 16px; box-shadow: var(--shadow);
@@ -314,12 +328,14 @@
   .settings-row:last-child { border-bottom: none; }
   .settings-label { display: flex; align-items: center; gap: 12px; font-size: 15px; color: var(--text); }
   
-  /* Стиль для кнопки "Работа с данными" */
+  /* Стиль для кнопок меню */
   .data-menu-btn {
     display: flex; align-items: center; justify-content: space-between; 
     width: 100%; padding: 18px 16px; background: none; border: none; 
     color: var(--text); font-size: 17px; font-weight: 600; cursor: pointer; font-family: inherit;
+    border-bottom: 1px solid var(--border);
   }
+  .data-menu-btn:last-child { border-bottom: none; }
   .data-menu-btn:hover { background: var(--input-bg); }
   
   .settings-btn {
@@ -345,10 +361,7 @@
   .slider {
     position: absolute;
     cursor: pointer;
-    top: 0;
-    left: 0;
-    right: 0;
-    bottom: 0;
+    top: 0; left: 0; right: 0; bottom: 0;
     background-color: var(--switch-bg);
     transition: .4s;
     border-radius: 30px;
@@ -356,21 +369,15 @@
   .slider:before {
     position: absolute;
     content: "";
-    height: 26px;
-    width: 26px;
-    left: 2px;
-    bottom: 2px;
+    height: 26px; width: 26px;
+    left: 2px; bottom: 2px;
     background-color: white;
     transition: .4s;
     border-radius: 50%;
     box-shadow: 0 2px 4px rgba(0,0,0,0.2);
   }
-  input:checked + .slider {
-    background-color: var(--switch-active);
-  }
-  input:checked + .slider:before {
-    transform: translateX(20px);
-  }
+  input:checked + .slider { background-color: var(--switch-active); }
+  input:checked + .slider:before { transform: translateX(20px); }
 
   .install-banner {
     background: linear-gradient(135deg, var(--primary), var(--primary-dark)); color: white; border-radius: 20px; padding: 16px; margin-bottom: 16px; display: none;
@@ -394,7 +401,7 @@
 </head>
 <body>
 <header>
-  <button class="back-btn" id="backBtn" onclick="closeDataManagement()">
+  <button class="back-btn" id="backBtn" onclick="closeSubScreen()">
     <i class="ph-bold ph-caret-left"></i>
   </button>
   <div class="header-brand" id="headerBrand">
@@ -406,7 +413,7 @@
     </svg>
     <span>Мои финансы</span>
   </div>
-  <div id="headerTitle" style="display:none; font-size: 20px; font-weight: 600;">Работа с данными</div>
+  <div id="headerTitle" style="display:none; font-size: 20px; font-weight: 600;">Экран</div>
 </header>
 
 <main>
@@ -581,24 +588,35 @@
     </div>
 
     <div class="settings-group" style="padding: 0;">
-      <button class="data-menu-btn" onclick="openDataManagement()">
+      <button class="data-menu-btn" onclick="openSubScreen('data-management')">
         <span>Работа с данными</span>
+        <i class="ph-bold ph-caret-right" style="color: var(--text-muted); font-size: 20px;"></i>
+      </button>
+      <button class="data-menu-btn" onclick="openSubScreen('achievements')">
+        <span>Достижения</span>
         <i class="ph-bold ph-caret-right" style="color: var(--text-muted); font-size: 20px;"></i>
       </button>
     </div>
     
     <p style="text-align:center; color: var(--text-muted); font-size: 12px; margin-top: 20px; margin-bottom: 20px;">
-      Мои финансы v6.2 · Данные хранятся на вашем устройстве
+      Мои финансы v6.3 · Данные хранятся на вашем устройстве
     </p>
   </section>
 
   <!-- ПОДРАЗДЕЛ "РАБОТА С ДАННЫМИ" -->
-  <section id="data-management">
+  <section id="data-management" class="sub-screen">
     <div class="settings-group" style="margin-top: 16px;">
       <button class="settings-btn" id="exportBtn">📤 Экспорт данных (JSON)</button>
       <button class="settings-btn" id="importBtn">📥 Импорт данных</button>
       <input type="file" id="importFile" accept=".json,application/json" hidden>
       <button class="settings-btn danger" id="clearBtn">🗑 Удалить все данные</button>
+    </div>
+  </section>
+
+  <!-- ПОДРАЗДЕЛ "ДОСТИЖЕНИЯ" -->
+  <section id="achievements" class="sub-screen">
+    <div class="card" style="padding: 0; margin-top: 16px;">
+      <div id="achievementsList"></div>
     </div>
   </section>
 </main>
@@ -744,6 +762,7 @@
   };
 
   let modalCapId = null;
+  let currentSubScreen = null;
 
   const $ = id => document.getElementById(id);
   const fmt = (n, curr = 'RUB') => n.toLocaleString('ru-RU', { maximumFractionDigits: 2 }) + (curr === 'USD' ? ' $' : ' ₽');
@@ -1338,16 +1357,25 @@
   }
 
   function switchTab(name) {
+    // Если открыт подэкран, закрываем его
+    if (currentSubScreen) {
+      const screen = $(currentSubScreen);
+      screen.classList.remove('active', 'slide-in', 'slide-out');
+      currentSubScreen = null;
+    }
+
     document.querySelectorAll('.tabs button').forEach(b => b.classList.toggle('active', b.dataset.tab === name));
-    document.querySelectorAll('main > section').forEach(s => s.classList.toggle('active', s.id === name));
+    document.querySelectorAll('main > section:not(.sub-screen)').forEach(s => s.classList.toggle('active', s.id === name));
     
-    // Скрываем кнопку назад при переключении вкладок
     $('backBtn').style.display = 'none';
     $('headerBrand').style.display = 'flex';
     $('headerTitle').style.display = 'none';
 
     const isCap = (name === 'capital');
-    $('mainBalanceCard').style.display = isCap ? 'none' : 'flex';
+    const isSettings = (name === 'settings');
+    
+    // Скрываем карточку баланса на вкладках Капитал и Ещё
+    $('mainBalanceCard').style.display = (isCap || isSettings) ? 'none' : 'flex';
     $('capitalBalanceCard').style.display = isCap ? 'flex' : 'none';
 
     if (name === 'charts') setTimeout(() => { renderPieChart(); renderBarChart(); }, 60);
@@ -1356,22 +1384,90 @@
   }
   function setupTabs() { document.querySelectorAll('.tabs button').forEach(btn => btn.onclick = () => switchTab(btn.dataset.tab)); }
 
-  // ЛОГИКА ДЛЯ ПОДРАЗДЕЛА "РАБОТА С ДАННЫМИ"
-  window.openDataManagement = function() {
-    document.querySelectorAll('main > section').forEach(s => s.classList.remove('active'));
-    $('data-management').classList.add('active');
+  // НАВИГАЦИЯ ПО ПОДЭКРАНАМ (С АНИМАЦИЕЙ)
+  window.openSubScreen = function(screenId) {
+    currentSubScreen = screenId;
+    
+    document.querySelectorAll('main > section').forEach(s => {
+      s.classList.remove('active', 'slide-in', 'slide-out');
+    });
+    
+    const screen = $(screenId);
+    screen.classList.add('active', 'slide-in');
+    
+    setTimeout(() => screen.classList.remove('slide-in'), 250);
+
     $('backBtn').style.display = 'flex';
     $('headerBrand').style.display = 'none';
     $('headerTitle').style.display = 'block';
+    
+    if (screenId === 'data-management') $('headerTitle').textContent = 'Работа с данными';
+    if (screenId === 'achievements') { $('headerTitle').textContent = 'Достижения'; renderAchievements(); }
   };
 
-  window.closeDataManagement = function() {
-    $('data-management').classList.remove('active');
-    $('settings').classList.add('active');
-    $('backBtn').style.display = 'none';
-    $('headerBrand').style.display = 'flex';
-    $('headerTitle').style.display = 'none';
+  window.closeSubScreen = function() {
+    if (!currentSubScreen) return;
+    const screen = $(currentSubScreen);
+    
+    screen.classList.add('slide-out');
+    
+    setTimeout(() => {
+      screen.classList.remove('active', 'slide-in', 'slide-out');
+      $('settings').classList.add('active');
+      currentSubScreen = null;
+      $('backBtn').style.display = 'none';
+      $('headerBrand').style.display = 'flex';
+      $('headerTitle').style.display = 'none';
+    }, 250);
   };
+
+  // РЕНДЕР ДОСТИЖЕНИЙ
+  function renderAchievements() {
+    const list = $('achievementsList');
+    list.innerHTML = '';
+    
+    let totalSavings = 0;
+    state.capital.forEach(c => {
+      if (c.type === 'saving' && (c.currency === 'RUB' || !c.currency)) {
+        totalSavings += c.amount;
+      }
+    });
+
+    const milestones = [
+      { amount: 250000, label: 'Накопил 250 000 ₽' },
+      { amount: 500000, label: 'Накопил 500 000 ₽' },
+      { amount: 750000, label: 'Накопил 750 000 ₽' },
+      { amount: 1000000, label: 'Накопил 1 000 000 ₽' },
+      { amount: 1500000, label: 'Накопил 1 500 000 ₽' },
+      { amount: 2000000, label: 'Накопил 2 000 000 ₽' },
+      { amount: 5000000, label: 'Накопил 5 000 000 ₽' }
+    ];
+
+    milestones.forEach(m => {
+      const pct = Math.min((totalSavings / m.amount) * 100, 100);
+      const isDone = totalSavings >= m.amount;
+      
+      const div = document.createElement('div');
+      div.className = 'budget-item';
+      div.innerHTML = `
+        <div class="cat-icon" style="background: ${isDone ? 'var(--income-bg)' : 'var(--input-bg)'}; color: ${isDone ? 'var(--income)' : 'var(--text-muted)'};">
+          <i class="ph-fill ph-${isDone ? 'trophy' : 'lock'}"></i>
+        </div>
+        <div class="budget-body">
+          <div class="budget-head">
+            <span class="budget-name">${m.label}</span>
+            <span class="budget-nums">
+              <span class="spent">${fmt(Math.min(totalSavings, m.amount))}</span> 
+              <span class="limit">/ ${fmt(m.amount)}</span>
+            </span>
+          </div>
+          <div class="progress-bar">
+            <div class="progress-fill ${isDone ? '' : 'warn'}" style="width: ${pct}%"></div>
+          </div>
+        </div>`;
+      list.appendChild(div);
+    });
+  }
 
   // ОБРАБОТКА СВАЙПА ДЛЯ ВОЗВРАТА
   function setupSwipeBack() {
@@ -1379,13 +1475,13 @@
     let touchStartY = 0;
 
     document.addEventListener('touchstart', e => {
-      if (!$('data-management').classList.contains('active')) return;
+      if (!currentSubScreen) return;
       touchStartX = e.changedTouches[0].screenX;
       touchStartY = e.changedTouches[0].screenY;
     }, { passive: true });
 
     document.addEventListener('touchend', e => {
-      if (!$('data-management').classList.contains('active')) return;
+      if (!currentSubScreen) return;
 
       const touchEndX = e.changedTouches[0].screenX;
       const touchEndY = e.changedTouches[0].screenY;
@@ -1393,9 +1489,8 @@
       const deltaX = touchEndX - touchStartX;
       const deltaY = Math.abs(touchEndY - touchStartY);
 
-      // Если свайп вправо (от 60px) и вертикальное отклонение небольшое
       if (deltaX > 60 && deltaY < 50) {
-        closeDataManagement();
+        closeSubScreen();
       }
     }, { passive: true });
   }
