@@ -77,6 +77,7 @@
     background: var(--bg-gradient);
   }
   
+  /* УБРАНА ПОЛОСКА СНИЗУ ШАПКИ */
   header {
     background: var(--header-bg); color: var(--header-text);
     padding: 14px 20px;
@@ -88,7 +89,7 @@
     /* Эффект матового стекла (блюр) */
     backdrop-filter: blur(16px);
     -webkit-backdrop-filter: blur(16px);
-    border-bottom: 1px solid var(--border);
+    border-bottom: none; /* Убрали линию */
   }
   .header-brand { 
     display: flex; align-items: center; gap: 12px; 
@@ -506,7 +507,7 @@
       <button class="settings-btn danger" id="clearBtn">🗑 Удалить все данные</button>
     </div>
     <p style="text-align:center; color: var(--text-muted); font-size: 12px; margin-top: 20px; margin-bottom: 20px;">
-      Мои финансы v5.8 · Данные хранятся на вашем устройстве
+      Мои финансы v5.9 · Данные хранятся на вашем устройстве
     </p>
   </section>
 </main>
