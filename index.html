@@ -24,7 +24,9 @@
     --expense: #dc2626; --expense-bg: #fee2e2; --warn: #f59e0b; --warn-bg: #fef3c7;
     --saving: #0ea5e9; --saving-bg: #e0f2fe;
     --shadow: 0 4px 12px rgba(0,0,0,0.05);
-    --header-bg: #ffffff;
+    
+    /* Цвет шапки теперь в точности равен фону */
+    --header-bg: #f5f5f7; 
     --header-text: #1a1a2e;
   }
   [data-theme="dark"] {
@@ -38,7 +40,10 @@
     --warn: #fbbf24; --warn-bg: rgba(251, 191, 36, 0.2);
     --saving: #38bdf8; --saving-bg: rgba(56, 189, 248, 0.2);
     --shadow: 0 4px 12px rgba(0,0,0,0.2);
-    --header-bg: #1a2235; --header-text: #ffffff;
+    
+    /* Цвет шапки в темной теме тоже сливается с фоном */
+    --header-bg: #0f172a; 
+    --header-text: #ffffff;
   }
   * { box-sizing: border-box; margin: 0; padding: 0; -webkit-tap-highlight-color: transparent; }
   
@@ -50,7 +55,7 @@
     overflow-x: hidden;
   }
   
-  /* УБРАНА ПОЛОСКА СНИЗУ ШАПКИ */
+  /* ШАПКА БЕЗ ПОЛОСОК И БЕЗ ФОНОВОГО КОНТРАСТА */
   header {
     background: var(--header-bg); color: var(--header-text);
     padding: 14px 20px;
@@ -103,7 +108,6 @@
   .cap-detail-item .del { color: rgba(255,255,255,0.6); padding: 0 8px; margin-left: 4px; font-size: 18px; }
   .cap-detail-item .del:hover { color: #ffb3b3; }
 
-  /* УБРАНА ПОЛОСКА СВЕРХУ НИЖНЕГО МЕНЮ */
   .tabs {
     position: fixed; bottom: 0; left: 0; right: 0; display: flex; background: var(--card);
     padding: 6px 0 calc(6px + env(safe-area-inset-bottom, 0px)) 0;
@@ -470,7 +474,7 @@
       <button class="settings-btn danger" id="clearBtn">🗑 Удалить все данные</button>
     </div>
     <p style="text-align:center; color: var(--text-muted); font-size: 12px; margin-top: 20px; margin-bottom: 20px;">
-      Мои финансы v5.3 · Данные хранятся на вашем устройстве
+      Мои финансы v5.4 · Данные хранятся на вашем устройстве
     </p>
   </section>
 </main>
