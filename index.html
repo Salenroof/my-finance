@@ -28,17 +28,22 @@
     --header-text: #1a1a2e;
   }
   [data-theme="dark"] {
-    --bg: #0f172a; --card: #1e293b; --text: #f1f5f9; --text-muted: #94a3b8;
-    --border: #334155; 
-    --input-bg: #2a374f; 
+    /* НОВЫЕ ЦВЕТА ИЗ ВАШЕГО СКРИНШОТА */
+    --bg: #0d0e15; 
+    --card: #161822; 
+    --text: #f1f5f9; 
+    --text-muted: #8e95a5;
+    --border: #242636; 
+    --input-bg: #1f2132; 
+    
     --primary: #60a5fa; --primary-dark: #3b82f6;
     --primary-light: rgba(96, 165, 250, 0.15);
-    --income: #34d399; --income-bg: rgba(52, 211, 153, 0.2);
-    --expense: #f87171; --expense-bg: rgba(248, 113, 113, 0.2); 
-    --warn: #fbbf24; --warn-bg: rgba(251, 191, 36, 0.2);
-    --saving: #38bdf8; --saving-bg: rgba(56, 189, 248, 0.2);
-    --shadow: 0 4px 12px rgba(0,0,0,0.2);
-    --header-bg: #1a2235; --header-text: #ffffff;
+    --income: #34d399; --income-bg: rgba(52, 211, 153, 0.15);
+    --expense: #f87171; --expense-bg: rgba(248, 113, 113, 0.15); 
+    --warn: #fbbf24; --warn-bg: rgba(251, 191, 36, 0.15);
+    --saving: #38bdf8; --saving-bg: rgba(56, 189, 248, 0.15);
+    --shadow: 0 4px 12px rgba(0,0,0,0.4);
+    --header-bg: #0d0e15; --header-text: #ffffff;
   }
   * { box-sizing: border-box; margin: 0; padding: 0; -webkit-tap-highlight-color: transparent; }
   
@@ -108,7 +113,7 @@
     border-top: 1px solid var(--border); padding: 6px 0 calc(6px + env(safe-area-inset-bottom, 0px)) 0;
     z-index: 100; box-shadow: 0 -2px 10px rgba(0,0,0,0.05);
   }
-  [data-theme="dark"] .tabs { box-shadow: 0 -2px 10px rgba(0,0,0,0.2); }
+  [data-theme="dark"] .tabs { box-shadow: 0 -2px 10px rgba(0,0,0,0.3); }
   .tabs button {
     flex: 1; display: flex; flex-direction: column; align-items: center; justify-content: center;
     background: none; border: none; color: var(--text-muted);
@@ -146,7 +151,6 @@
   }
   input:focus, select:focus { box-shadow: 0 0 0 2px var(--primary-light); }
   
-  /* Кастомный селект для бюджета */
   .select-btn {
     width: 100%; padding: 12px; border: none; border-radius: 10px;
     font-size: 15px; background: var(--input-bg); color: var(--text);
@@ -157,7 +161,6 @@
     white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
   }
   
-  /* ИСПРАВЛЕНО: Идеальное выравнивание иконок в списке */
   .cat-picker-item {
     display: flex; align-items: center; gap: 12px; padding: 12px;
     border-bottom: 1px solid var(--border); cursor: pointer;
@@ -218,7 +221,7 @@
   .chart-wrapper { position: relative; height: 260px; }
 
   .modal-overlay {
-    position: fixed; top: 0; left: 0; right: 0; bottom: 0; background: rgba(0,0,0,0.5); z-index: 2000; display: none; align-items: center; justify-content: center; padding: 20px; backdrop-filter: blur(2px);
+    position: fixed; top: 0; left: 0; right: 0; bottom: 0; background: rgba(0,0,0,0.6); z-index: 2000; display: none; align-items: center; justify-content: center; padding: 20px; backdrop-filter: blur(4px);
   }
   .modal-content {
     background: var(--card); border-radius: 16px; padding: 20px; width: 100%; max-width: 400px; box-shadow: 0 10px 25px rgba(0,0,0,0.2);
@@ -277,11 +280,10 @@
     background: white; color: var(--primary); border: none; padding: 8px 16px; border-radius: 8px; font-weight: 600; cursor: pointer; margin-top: 8px;
   }
   .toast {
-    position: fixed; bottom: 90px; left: 50%; transform: translate(-50%, 20px); opacity: 0; pointer-events: none; background: var(--text); color: var(--card); padding: 12px 20px; border-radius: 10px; font-size: 14px; transition: transform 0.3s, opacity 0.3s; z-index: 1000;
+    position: fixed; bottom: 90px; left: 50%; transform: translate(-50%, 20px); opacity: 0; pointer-events: none; background: var(--text); color: var(--bg); padding: 12px 20px; border-radius: 10px; font-size: 14px; transition: transform 0.3s, opacity 0.3s; z-index: 1000;
   }
   .toast.show { transform: translate(-50%, 0); opacity: 1; }
 
-  /* Стили для нижнего модального окна выбора категории */
   .bottom-sheet {
     align-items: flex-end; padding: 0;
   }
@@ -472,7 +474,7 @@
       <button class="settings-btn danger" id="clearBtn">🗑 Удалить все данные</button>
     </div>
     <p style="text-align:center; color: var(--text-muted); font-size: 12px; margin-top: 20px; margin-bottom: 20px;">
-      Мои финансы v5.2 · Данные хранятся на вашем устройстве
+      Мои финансы v5.3 · Данные хранятся на вашем устройстве
     </p>
   </section>
 </main>
@@ -522,7 +524,6 @@
   </div>
 </div>
 
-<!-- Модальное окно для выбора категории (Кастомный селект) -->
 <div id="catPickerModal" class="modal-overlay bottom-sheet" style="display: none;">
   <div class="modal-content">
     <h3 style="text-align:center; margin-bottom: 16px;">Выберите категорию</h3>
@@ -689,7 +690,6 @@
     return f || { icon: 'package', color: '#64748b', bg: 'rgba(100,116,139,0.15)' };
   }
 
-  // ИСПРАВЛЕНО: Добавлены стили для идеального центрирования картинок и SVG
   function getIconHtml(catData, size = 18) {
     if (catData.img) {
       return `<img src="${catData.img}" style="width: ${size}px; height: ${size}px; object-fit: contain; display: block; margin: auto;">`;
@@ -934,7 +934,6 @@
       if (e.target === $('editModal')) closeEditModal();
     };
 
-    // ЗАКРЫТИЕ ПО ТАПУ НА ФОН ВЫБОРА КАТЕГОРИИ
     const catModal = $('catPickerModal');
     catModal.onclick = (e) => {
       if (e.target === catModal) {
@@ -1029,7 +1028,6 @@
     EXPENSE_CATS.forEach(c => {
       const div = document.createElement('div');
       div.className = 'cat-picker-item';
-      // ИСПРАВЛЕНО: Идеальное центрирование через класс cat-picker-icon
       div.innerHTML = `
         <div class="cat-picker-icon" style="background: ${c.bg};">
           ${getIconHtml(c, 22)}
