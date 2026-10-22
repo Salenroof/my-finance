@@ -500,7 +500,13 @@
     </div>
   </section>
 
+  <!-- ОБНОВЛЕННАЯ ВКЛАДКА АНАЛИЗ -->
   <section id="charts">
+    <div class="card" style="margin-bottom: 16px;">
+      <h3 style="font-size: 15px; margin-bottom: 12px; font-weight: 600; color: var(--text);">Топ-3 траты за месяц</h3>
+      <div id="topExpensesList"></div>
+    </div>
+
     <div class="filters" style="margin-bottom: 12px;">
       <button data-chart-period="all">Всё время</button>
       <button data-chart-period="month" class="active">Этот месяц</button>
@@ -593,13 +599,16 @@
         <i class="ph-bold ph-caret-right" style="color: var(--text-muted); font-size: 20px;"></i>
       </button>
       <button class="data-menu-btn" onclick="openSubScreen('achievements')">
-        <span>Достижения</span>
+        <div style="display:flex; align-items:center; gap:12px;">
+          <img src="gem_icon.png" style="width: 24px; height: 24px; object-fit: contain;">
+          <span>Достижения</span>
+        </div>
         <i class="ph-bold ph-caret-right" style="color: var(--text-muted); font-size: 20px;"></i>
       </button>
     </div>
     
     <p style="text-align:center; color: var(--text-muted); font-size: 12px; margin-top: 20px; margin-bottom: 20px;">
-      Мои финансы v6.4 · Данные хранятся на вашем устройстве
+      Мои финансы v6.5 · Данные хранятся на вашем устройстве
     </p>
   </section>
 
@@ -930,6 +939,49 @@
     });
   }
 
+  // ТОП 3 ТРАТЫ ЗА МЕСЯЦ
+  function renderTopExpenses() {
+    const container = $('topExpensesList');
+    if (!container) return;
+
+    const now = new Date();
+    const currentMonthExpenses = state.transactions.filter(t => {
+      if (t.type !== 'expense' || (t.currency || 'RUB') !== 'RUB') return false;
+      const d = new Date(t.date);
+      return d.getMonth() === now.getMonth() && d.getFullYear() === now.getFullYear();
+    });
+
+    currentMonthExpenses.sort((a, b) => b.amount - a.amount);
+    const top3 = currentMonthExpenses.slice(0, 3);
+
+    if (top3.length === 0) {
+      container.innerHTML = '<div style="text-align:center; color:var(--text-muted); font-size:13px; padding:10px 0;">Нет трат за этот месяц</div>';
+      return;
+    }
+
+    container.innerHTML = '';
+    top3.forEach((t, index) => {
+      const catData = getCatData(t.category, t.type);
+      const div = document.createElement('div');
+      div.className = 'item';
+      div.style.padding = '10px 0';
+      div.style.borderBottom = index < top3.length - 1 ? '1px solid var(--border)' : 'none';
+      div.style.cursor = 'default';
+      div.innerHTML = `
+        <div style="font-weight:bold; font-size:16px; color:var(--text-muted); width:20px; text-align:center;">${index + 1}</div>
+        <div class="cat-icon" style="background: ${catData.bg}; color: ${catData.color}; width: 36px; height: 36px;">
+          ${getIconHtml(catData, 20)}
+        </div>
+        <div class="info">
+          <div class="desc" style="font-size:14px;">${escapeHtml(t.desc)}</div>
+          <div class="meta" style="font-size:11px;">${t.category}</div>
+        </div>
+        <span class="amount expense" style="font-size:14px;">${fmt(t.amount, 'RUB')}</span>
+      `;
+      container.appendChild(div);
+    });
+  }
+
   function renderCapCategories() {
     const cats = state.capType === 'saving' ? SAVING_CATS : DEBT_CATS;
     if (!cats.find(c => c.name === state.capCategory)) state.capCategory = cats[0].name;
@@ -1251,7 +1303,7 @@
   }
 
   function renderAll() {
-    renderBalance(); renderList(); renderCapital(); renderBudgets();
+    renderBalance(); renderList(); renderCapital(); renderBudgets(); renderTopExpenses();
   }
 
   function resetForm() {
@@ -1373,12 +1425,16 @@
 
     const isCap = (name === 'capital');
     const isSettings = (name === 'settings');
+    const isCharts = (name === 'charts');
     
-    // Скрываем карточку баланса на вкладках Капитал и Ещё
-    $('mainBalanceCard').style.display = (isCap || isSettings) ? 'none' : 'flex';
+    // Скрываем карточку баланса на вкладках Капитал, Ещё и Анализ
+    $('mainBalanceCard').style.display = (isCap || isSettings || isCharts) ? 'none' : 'flex';
     $('capitalBalanceCard').style.display = isCap ? 'flex' : 'none';
 
-    if (name === 'charts') setTimeout(() => { renderPieChart(); renderBarChart(); }, 60);
+    if (name === 'charts') {
+      renderTopExpenses();
+      setTimeout(() => { renderPieChart(); renderBarChart(); }, 60);
+    }
     if (name === 'budgets') renderBudgets();
     if (name === 'capital') renderCapital();
   }
@@ -1449,7 +1505,6 @@
       
       const div = document.createElement('div');
       div.className = 'budget-item';
-      // Добавлен стиль для картинок: если не достигнуто - серые и прозрачные
       div.innerHTML = `
         <div class="cat-icon" style="background: transparent; width: 60px; height: 60px; margin-right: 8px;">
           <img src="${m.icon}" style="width: 100%; height: 100%; object-fit: contain; ${isDone ? '' : 'filter: grayscale(100%) opacity(0.5);'}">
