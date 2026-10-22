@@ -503,7 +503,7 @@
   <!-- ОБНОВЛЕННАЯ ВКЛАДКА АНАЛИЗ -->
   <section id="charts">
     <div class="card" style="margin-bottom: 16px;">
-      <h3 style="font-size: 15px; margin-bottom: 12px; font-weight: 600; color: var(--text);">Топ-3 траты за месяц</h3>
+      <h3 style="font-size: 15px; margin-bottom: 12px; font-weight: 600; color: var(--text);">Топ-3 категорий трат</h3>
       <div id="topExpensesList"></div>
     </div>
 
@@ -939,20 +939,28 @@
     });
   }
 
-  // ТОП 3 ТРАТЫ ЗА МЕСЯЦ
+  // ТОП 3 КАТЕГОРИИ ТРАТ ЗА МЕСЯЦ (С ГРУППИРОВКОЙ)
   function renderTopExpenses() {
     const container = $('topExpensesList');
     if (!container) return;
 
     const now = new Date();
-    const currentMonthExpenses = state.transactions.filter(t => {
-      if (t.type !== 'expense' || (t.currency || 'RUB') !== 'RUB') return false;
+    const catTotals = {};
+
+    state.transactions.forEach(t => {
+      if (t.type !== 'expense' || (t.currency || 'RUB') !== 'RUB') return;
       const d = new Date(t.date);
-      return d.getMonth() === now.getMonth() && d.getFullYear() === now.getFullYear();
+      if (d.getMonth() === now.getMonth() && d.getFullYear() === now.getFullYear()) {
+        catTotals[t.category] = (catTotals[t.category] || 0) + t.amount;
+      }
     });
 
-    currentMonthExpenses.sort((a, b) => b.amount - a.amount);
-    const top3 = currentMonthExpenses.slice(0, 3);
+    // Преобразуем в массив и сортируем по сумме (по убыванию)
+    const sortedCats = Object.keys(catTotals)
+      .map(cat => ({ category: cat, amount: catTotals[cat] }))
+      .sort((a, b) => b.amount - a.amount);
+
+    const top3 = sortedCats.slice(0, 3);
 
     if (top3.length === 0) {
       container.innerHTML = '<div style="text-align:center; color:var(--text-muted); font-size:13px; padding:10px 0;">Нет трат за этот месяц</div>';
@@ -960,8 +968,8 @@
     }
 
     container.innerHTML = '';
-    top3.forEach((t, index) => {
-      const catData = getCatData(t.category, t.type);
+    top3.forEach((item, index) => {
+      const catData = getCatData(item.category, 'expense');
       const div = document.createElement('div');
       div.className = 'item';
       div.style.padding = '10px 0';
@@ -973,10 +981,10 @@
           ${getIconHtml(catData, 20)}
         </div>
         <div class="info">
-          <div class="desc" style="font-size:14px;">${escapeHtml(t.desc)}</div>
-          <div class="meta" style="font-size:11px;">${t.category}</div>
+          <div class="desc" style="font-size:14px;">${escapeHtml(item.category)}</div>
+          <div class="meta" style="font-size:11px;">Сумма за месяц</div>
         </div>
-        <span class="amount expense" style="font-size:14px;">${fmt(t.amount, 'RUB')}</span>
+        <span class="amount expense" style="font-size:14px;">${fmt(item.amount, 'RUB')}</span>
       `;
       container.appendChild(div);
     });
