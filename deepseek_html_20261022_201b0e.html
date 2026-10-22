@@ -1,0 +1,1319 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+<meta name="theme-color" content="#2b68ed">
+<title>Мои финансы</title>
+<link rel="manifest" href="manifest.json">
+<link rel="icon" type="image/png" href="icon.png">
+<link rel="apple-touch-icon" href="icon.png">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<meta name="apple-mobile-web-app-title" content="Финансы">
+
+<style>
+  :root {
+    --bg: #f5f5f7; --card: #ffffff; --text: #1a1a2e; --text-muted: #6b7280;
+    --border: #e5e7eb; 
+    --input-bg: #f0f2f5; 
+    --primary: #2b68ed; 
+    --primary-dark: #1d4ed8;
+    --primary-light: #eff4ff; 
+    --income: #059669; --income-bg: #d1fae5;
+    --expense: #dc2626; --expense-bg: #fee2e2; --warn: #f59e0b; --warn-bg: #fef3c7;
+    --saving: #0ea5e9; --saving-bg: #e0f2fe;
+    --shadow: 0 4px 12px rgba(0,0,0,0.05);
+    --header-bg: #ffffff;
+    --header-text: #1a1a2e;
+  }
+  [data-theme="dark"] {
+    --bg: #0f172a; --card: #1e293b; --text: #f1f5f9; --text-muted: #94a3b8;
+    --border: #334155; 
+    --input-bg: #2a374f; 
+    --primary: #60a5fa; --primary-dark: #3b82f6;
+    --primary-light: rgba(96, 165, 250, 0.15);
+    --income: #34d399; --income-bg: rgba(52, 211, 153, 0.2);
+    --expense: #f87171; --expense-bg: rgba(248, 113, 113, 0.2); 
+    --warn: #fbbf24; --warn-bg: rgba(251, 191, 36, 0.2);
+    --saving: #38bdf8; --saving-bg: rgba(56, 189, 248, 0.2);
+    --shadow: 0 4px 12px rgba(0,0,0,0.2);
+    --header-bg: #1a2235; --header-text: #ffffff;
+  }
+  * { box-sizing: border-box; margin: 0; padding: 0; -webkit-tap-highlight-color: transparent; }
+  
+  body {
+    font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+    background: var(--bg); color: var(--text); min-height: 100vh;
+    transition: background 0.2s, color 0.2s; 
+    padding-top: 0;
+    overflow-x: hidden;
+  }
+  
+  header {
+    background: var(--header-bg); color: var(--header-text);
+    padding: 14px 20px;
+    padding-top: calc(14px + env(safe-area-inset-top, 0px));
+    display: flex; align-items: center; justify-content: space-between;
+    position: sticky; top: 0; z-index: 100;
+    border-bottom: 1px solid var(--border);
+    transition: background 0.2s, color 0.2s;
+  }
+  .header-brand { 
+    display: flex; align-items: center; gap: 12px; 
+    font-size: 20px;
+    font-weight: 500;
+  }
+  .header-brand svg { width: 42px; height: 28px; }
+  .icon-btn { 
+    background: none; border: none; font-size: 20px; 
+    cursor: pointer; padding: 8px; border-radius: 8px;
+    color: var(--header-text);
+  }
+  .icon-btn:hover { background: rgba(128,128,128,0.1); }
+  
+  main { max-width: 640px; margin: 0 auto; padding: 16px; padding-bottom: 100px; }
+  
+  .balance-card {
+    background: linear-gradient(135deg, var(--primary), var(--primary-dark)); color: white;
+    border-radius: 16px; padding: 16px 20px; margin-bottom: 16px; box-shadow: var(--shadow);
+    min-height: 152px; display: flex; flex-direction: column; justify-content: center;
+  }
+  .balance-top { display: flex; justify-content: space-between; align-items: flex-start; width: 100%; }
+  .balance-col { flex: 1; cursor: pointer; transition: opacity 0.2s; }
+  .balance-col:hover { opacity: 0.8; }
+  .balance-col.left { border-right: 1px solid rgba(255,255,255,0.3); padding-right: 16px; }
+  .balance-col.right { padding-left: 16px; }
+  .balance-card .label { font-size: 13px; opacity: 0.9; display: flex; align-items: center; gap: 4px; }
+  .balance-card .value { font-size: 24px; font-weight: bold; margin: 4px 0; white-space: nowrap; }
+  .balance-card .sub-row { display: flex; gap: 8px; font-size: 12px; opacity: 0.8; flex-wrap: wrap; }
+
+  .capital-details {
+    margin-top: 12px; padding-top: 12px; border-top: 1px solid rgba(255,255,255,0.3); display: none;
+  }
+  .capital-details.show { display: block; }
+  .cap-detail-item {
+    display: flex; justify-content: space-between; align-items: center;
+    padding: 10px 0; font-size: 14px; border-bottom: 1px solid rgba(255,255,255,0.1); cursor: pointer;
+  }
+  .cap-detail-item:last-child { border-bottom: none; padding-bottom: 0; }
+  .cap-detail-item:active { opacity: 0.7; }
+  .cap-detail-item .name { flex: 1; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; margin-right: 10px; display:flex; align-items:center; }
+  .cap-detail-item .amount { font-weight: 600; white-space: nowrap; }
+  .cap-detail-item .del { color: rgba(255,255,255,0.6); padding: 0 8px; margin-left: 4px; font-size: 18px; }
+  .cap-detail-item .del:hover { color: #ffb3b3; }
+
+  .tabs {
+    position: fixed; bottom: 0; left: 0; right: 0; display: flex; background: var(--card);
+    border-top: 1px solid var(--border); padding: 6px 0 calc(6px + env(safe-area-inset-bottom, 0px)) 0;
+    z-index: 100; box-shadow: 0 -2px 10px rgba(0,0,0,0.05);
+  }
+  [data-theme="dark"] .tabs { box-shadow: 0 -2px 10px rgba(0,0,0,0.2); }
+  .tabs button {
+    flex: 1; display: flex; flex-direction: column; align-items: center; justify-content: center;
+    background: none; border: none; color: var(--text-muted);
+    font-size: 10px; font-weight: 500; cursor: pointer; padding: 4px 0; transition: color 0.2s; font-family: inherit;
+  }
+  .tabs button .icon { width: 24px; height: 24px; margin-bottom: 4px; display: flex; align-items: center; justify-content: center; }
+  .tabs button .icon svg { width: 100%; height: 100%; stroke: currentColor; stroke-width: 1.8; stroke-linecap: round; stroke-linejoin: round; fill: none; transition: stroke 0.2s; }
+  .tabs button.active { color: var(--primary); }
+
+  section { display: none; }
+  section.active { display: block; }
+  
+  .card {
+    background: var(--card); border-radius: 16px; padding: 16px; margin-bottom: 12px; border: none; box-shadow: var(--shadow);
+  }
+  
+  .type-toggle { display: flex; gap: 8px; margin-bottom: 12px; }
+  .type-toggle button {
+    flex: 1; padding: 10px; border: none; background: var(--input-bg); color: var(--text-muted); border-radius: 10px; font-weight: 600; cursor: pointer; transition: all 0.2s; font-family: inherit; font-size: 14px;
+  }
+  .type-toggle button[data-type="expense"].active { background: var(--expense-bg); color: var(--expense); }
+  .type-toggle button[data-type="income"].active { background: var(--income-bg); color: var(--income); }
+  .type-toggle button[data-type="debt"].active { background: var(--expense-bg); color: var(--expense); }
+  .type-toggle button[data-type="saving"].active { background: var(--saving-bg); color: var(--saving); }
+  
+  .currency-toggle { display: flex; gap: 8px; margin-bottom: 12px; }
+  .currency-toggle button {
+    flex: 1; padding: 8px; border: none; background: var(--input-bg); color: var(--text-muted); border-radius: 10px; font-weight: 600; cursor: pointer; transition: all 0.2s; font-family: inherit; font-size: 14px;
+  }
+  .currency-toggle button.active { background: var(--primary-light); color: var(--primary); }
+  
+  .form-row { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; margin-bottom: 12px; }
+  input, select {
+    padding: 12px; border: none; border-radius: 10px; font-size: 15px; background: var(--input-bg); color: var(--text); width: 100%; outline: none; transition: box-shadow 0.2s; font-family: inherit;
+  }
+  input:focus, select:focus { box-shadow: 0 0 0 2px var(--primary-light); }
+  
+  /* Кастомный селект для бюджета */
+  .select-btn {
+    width: 100%; padding: 12px; border: none; border-radius: 10px;
+    font-size: 15px; background: var(--input-bg); color: var(--text);
+    cursor: pointer; display: flex; justify-content: space-between; align-items: center;
+    font-family: inherit; text-align: left;
+  }
+  .select-btn span {
+    white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
+  }
+  
+  /* ИСПРАВЛЕНО: Идеальное выравнивание иконок в списке */
+  .cat-picker-item {
+    display: flex; align-items: center; gap: 12px; padding: 12px;
+    border-bottom: 1px solid var(--border); cursor: pointer;
+  }
+  .cat-picker-item:last-child { border-bottom: none; }
+  .cat-picker-item:active { background: var(--bg); }
+  
+  .cat-picker-icon {
+    width: 36px; height: 36px; border-radius: 10px; flex-shrink: 0;
+    display: flex; align-items: center; justify-content: center;
+  }
+
+  .categories { display: flex; flex-wrap: wrap; gap: 6px; margin-bottom: 12px; max-height: 180px; overflow-y: auto; }
+  .chip {
+    padding: 8px 12px; border: none; background: var(--input-bg); border-radius: 20px; font-size: 13px; cursor: pointer; color: var(--text-muted); transition: all 0.2s; font-family: inherit; display: flex; align-items: center; gap: 6px;
+  }
+  .chip.active { font-weight: 600; }
+  .chip i { font-size: 18px; display: flex; align-items: center; justify-content: center;}
+  .chip img { width: 18px; height: 18px; object-fit: contain; display: block; }
+  
+  .submit-btn {
+    width: 100%; padding: 14px; background: var(--primary); color: white; border: none; border-radius: 10px; font-size: 15px; font-weight: 600; cursor: pointer; transition: background 0.2s; font-family: inherit;
+  }
+  .submit-btn:hover { background: var(--primary-dark); }
+  
+  .filters { display: flex; gap: 6px; margin-bottom: 12px; overflow-x: auto; padding-bottom: 4px; }
+  .filters button {
+    padding: 6px 12px; border: none; background: var(--input-bg); color: var(--text-muted); border-radius: 20px; font-size: 12px; cursor: pointer; white-space: nowrap; font-family: inherit; transition: all 0.2s;
+  }
+  .filters button.active { background: var(--primary); color: white; }
+  
+  .item {
+    display: flex; align-items: center; gap: 12px; padding: 12px; border-bottom: 1px solid var(--border); cursor: pointer;
+  }
+  .item:last-child { border-bottom: none; }
+  .item:hover { background: var(--bg); }
+  .item .cat-icon {
+    width: 42px; height: 42px; display: flex; align-items: center; justify-content: center; border-radius: 12px; flex-shrink: 0; font-size: 22px;
+  }
+  .item .cat-icon img { width: 26px; height: 26px; object-fit: contain; display: block; margin: auto; }
+  .item .info { flex: 1; min-width: 0; }
+  .item .info .desc { font-weight: 500; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+  .item .info .meta { font-size: 12px; color: var(--text-muted); margin-top: 2px; }
+  .item .amount { font-weight: 600; font-size: 15px; white-space: nowrap; }
+  .item .amount.income { color: var(--income); }
+  .item .amount.expense, .item .amount.debt { color: var(--expense); }
+  .item .amount.saving { color: var(--saving); }
+  .item .del-btn {
+    background: none; border: none; color: var(--text-muted); font-size: 18px; cursor: pointer; padding: 4px 8px; border-radius: 6px;
+  }
+  .item .del-btn:hover { color: var(--expense); background: var(--expense-bg); }
+  .empty { text-align: center; padding: 40px 20px; color: var(--text-muted); font-size: 14px; }
+  
+  .chart-card {
+    background: var(--card); border-radius: 16px; padding: 16px; margin-bottom: 12px; border: none; box-shadow: var(--shadow);
+  }
+  .chart-card h3 { font-size: 14px; margin-bottom: 12px; color: var(--text-muted); font-weight: 500; }
+  .chart-wrapper { position: relative; height: 260px; }
+
+  .modal-overlay {
+    position: fixed; top: 0; left: 0; right: 0; bottom: 0; background: rgba(0,0,0,0.5); z-index: 2000; display: none; align-items: center; justify-content: center; padding: 20px; backdrop-filter: blur(2px);
+  }
+  .modal-content {
+    background: var(--card); border-radius: 16px; padding: 20px; width: 100%; max-width: 400px; box-shadow: 0 10px 25px rgba(0,0,0,0.2);
+  }
+  .modal-content h3 { margin-bottom: 16px; font-size: 18px; }
+  .modal-content input { margin-bottom: 12px; font-size: 16px; }
+  .modal-actions { display: flex; gap: 10px; justify-content: flex-end; margin-top: 16px; }
+  .modal-actions .cancel-btn { width: auto; padding: 10px 16px; border: none; border-radius: 8px; margin: 0; background: var(--input-bg); color: var(--text); }
+  .modal-actions .submit-btn { width: auto; padding: 10px 24px; border-radius: 8px; }
+
+  .budget-total {
+    background: linear-gradient(135deg, var(--primary), var(--primary-dark)); color: white; border-radius: 16px; padding: 18px; margin-bottom: 12px; box-shadow: var(--shadow);
+  }
+  .budget-total .label { font-size: 13px; opacity: 0.9; }
+  .budget-total .value { font-size: 22px; font-weight: bold; margin: 6px 0 10px; }
+  .budget-total .progress-bar { background: rgba(255,255,255,0.25); height: 8px; border-radius: 4px; overflow: hidden; }
+  .budget-total .progress-fill { height: 100%; background: white; border-radius: 4px; transition: width 0.3s; }
+  .budget-total .progress-fill.warn { background: #fbbf24; }
+  .budget-total .progress-fill.danger { background: #fca5a5; }
+  .budget-total .pct { text-align: right; font-size: 12px; margin-top: 6px; opacity: 0.9; }
+  
+  .budget-item {
+    display: flex; align-items: center; gap: 12px; padding: 14px; border-bottom: 1px solid var(--border); cursor: pointer;
+  }
+  .budget-item:last-child { border-bottom: none; }
+  .budget-item:hover { background: var(--bg); }
+  .budget-item .cat-icon {
+    width: 42px; height: 42px; display: flex; align-items: center; justify-content: center; border-radius: 12px; flex-shrink: 0; font-size: 22px;
+  }
+  .budget-item .cat-icon img { width: 26px; height: 26px; object-fit: contain; display: block; margin: auto; }
+  .budget-item .budget-body { flex: 1; min-width: 0; }
+  .budget-item .budget-head { display: flex; justify-content: space-between; align-items: baseline; }
+  .budget-item .budget-name { font-weight: 500; font-size: 15px; }
+  .budget-item .budget-nums { font-size: 13px; white-space: nowrap; margin-left: 8px; }
+  .budget-item .budget-nums .spent { font-weight: 600; }
+  .budget-item .budget-nums .limit { color: var(--text-muted); }
+  .budget-item .progress-bar { background: var(--input-bg); height: 6px; border-radius: 3px; margin-top: 6px; overflow: hidden; }
+  .budget-item .progress-fill { height: 100%; border-radius: 3px; transition: width 0.3s; background: var(--income); }
+  .budget-item .progress-fill.warn { background: var(--warn); }
+  .budget-item .progress-fill.danger { background: var(--expense); }
+
+  .settings-group {
+    background: var(--card); border-radius: 16px; overflow: hidden; margin-bottom: 12px; border: none; box-shadow: var(--shadow);
+  }
+  .settings-btn {
+    display: flex; align-items: center; gap: 12px; width: 100%; padding: 14px 16px; background: none; border: none; border-bottom: 1px solid var(--border); color: var(--text); font-size: 15px; cursor: pointer; text-align: left; font-family: inherit;
+  }
+  .settings-btn:last-child { border-bottom: none; }
+  .settings-btn:hover { background: var(--bg); }
+  .settings-btn.danger { color: var(--expense); }
+  .install-banner {
+    background: linear-gradient(135deg, var(--primary), var(--primary-dark)); color: white; border-radius: 16px; padding: 16px; margin-bottom: 12px; display: none;
+  }
+  .install-banner.show { display: block; }
+  .install-banner button {
+    background: white; color: var(--primary); border: none; padding: 8px 16px; border-radius: 8px; font-weight: 600; cursor: pointer; margin-top: 8px;
+  }
+  .toast {
+    position: fixed; bottom: 90px; left: 50%; transform: translate(-50%, 20px); opacity: 0; pointer-events: none; background: var(--text); color: var(--card); padding: 12px 20px; border-radius: 10px; font-size: 14px; transition: transform 0.3s, opacity 0.3s; z-index: 1000;
+  }
+  .toast.show { transform: translate(-50%, 0); opacity: 1; }
+
+  /* Стили для нижнего модального окна выбора категории */
+  .bottom-sheet {
+    align-items: flex-end; padding: 0;
+  }
+  .bottom-sheet .modal-content {
+    max-width: 100%; border-radius: 20px 20px 0 0; max-height: 80vh; overflow-y: auto; padding-bottom: calc(20px + env(safe-area-inset-bottom, 0px));
+  }
+</style>
+</head>
+<body>
+<header>
+  <div class="header-brand">
+    <svg viewBox="0 0 44 28" xmlns="http://www.w3.org/2000/svg">
+      <rect width="44" height="28" rx="4" fill="#3f5cff"/>
+      <rect x="0" y="7" width="44" height="5" fill="#facc15"/>
+      <circle cx="7" cy="21" r="3.5" fill="#cbd5e1"/>
+      <circle cx="12" cy="21" r="3.5" fill="#cbd5e1" opacity="0.7"/>
+    </svg>
+    <span>Мои финансы</span>
+  </div>
+  <button class="icon-btn" id="themeToggle" aria-label="Сменить тему">🌙</button>
+</header>
+
+<main>
+  <div class="balance-card" id="mainBalanceCard">
+    <div class="balance-top">
+      <div class="balance-col left">
+        <div class="label">Баланс на счетах (₽)</div>
+        <div class="value" id="balanceRUB">0 ₽</div>
+        <div class="sub-row">
+          <span>↑ <span id="totalIncomeRUB">0</span></span>
+          <span>↓ <span id="totalExpenseRUB">0</span></span>
+        </div>
+      </div>
+      <div class="balance-col right">
+        <div class="label">Баланс на счетах ($)</div>
+        <div class="value" id="balanceUSD">0 $</div>
+        <div class="sub-row">
+          <span>↑ <span id="totalIncomeUSD">0</span></span>
+          <span>↓ <span id="totalExpenseUSD">0</span></span>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div class="balance-card" id="capitalBalanceCard" style="display:none; background: linear-gradient(135deg, #0ea5e9, #0284c7);">
+    <div class="balance-top">
+      <div class="balance-col left" onclick="toggleCapitalDetail('saving')">
+        <div class="label">Накопления <span style="font-size:10px;">▼</span></div>
+        <div class="value" id="topSavingsRUB">0 ₽</div>
+        <div class="sub-row"><span id="topSavingsUSD">0 $</span></div>
+      </div>
+      <div class="balance-col right" onclick="toggleCapitalDetail('debt')">
+        <div class="label">Долги <span style="font-size:10px;">▼</span></div>
+        <div class="value" id="topDebtsRUB">0 ₽</div>
+        <div class="sub-row"><span id="topDebtsUSD">0 $</span></div>
+      </div>
+    </div>
+    
+    <div id="savingsDetails" class="capital-details"></div>
+    <div id="debtsDetails" class="capital-details"></div>
+
+    <div style="margin-top: 16px; padding-top: 12px; border-top: 1px solid rgba(255,255,255,0.3); display: flex; justify-content: space-between; align-items: center; width: 100%;">
+      <span style="font-size: 14px; opacity: 0.9;">Итог (Чистый капитал):</span>
+      <span style="font-size: 16px; font-weight: bold; text-align: right;" id="topNetWorth">0 ₽ / 0 $</span>
+    </div>
+  </div>
+
+  <div class="install-banner" id="installBanner">
+    Установите приложение на устройство для быстрого доступа!
+    <button id="installBtn">Установить</button>
+  </div>
+
+  <section id="transactions" class="active">
+    <div class="card">
+      <form id="form">
+        <div class="type-toggle">
+          <button type="button" data-type="expense" class="active">− Расход</button>
+          <button type="button" data-type="income">+ Доход</button>
+        </div>
+        <div class="currency-toggle">
+          <button type="button" data-currency="RUB" class="active">₽ Рубли</button>
+          <button type="button" data-currency="USD">$ Доллары</button>
+        </div>
+        <div class="form-row">
+          <input type="number" id="amount" placeholder="Сумма" step="0.01" min="0.01" required>
+          <input type="text" id="desc" placeholder="Описание" required maxlength="60">
+        </div>
+        <div class="categories" id="categories"></div>
+        <button type="submit" class="submit-btn" id="submitBtn">Добавить</button>
+        <button type="button" class="cancel-btn" id="cancelEdit" hidden style="width:100%; padding:10px; margin-top:8px; background:none; border:none; color:var(--text-muted);">Отменить редактирование</button>
+      </form>
+    </div>
+
+    <div class="filters">
+      <button data-filter-type="all" class="active">Все</button>
+      <button data-filter-type="income">Доходы</button>
+      <button data-filter-type="expense">Расходы</button>
+      <button data-filter-period="month">Месяц</button>
+      <button data-filter-period="week">Неделя</button>
+    </div>
+
+    <div class="card" style="padding: 0;">
+      <div id="list"></div>
+    </div>
+  </section>
+
+  <section id="charts">
+    <div class="filters" style="margin-bottom: 12px;">
+      <button data-chart-period="all">Всё время</button>
+      <button data-chart-period="month" class="active">Этот месяц</button>
+      <button data-chart-period="week">Эта неделя</button>
+    </div>
+    <div style="background: var(--warn-bg); color: var(--warn); padding: 10px; border-radius: 8px; margin-bottom: 12px; font-size: 13px; text-align: center;">
+      Графики строятся только по операциям в рублях (₽).
+    </div>
+    <div class="chart-card">
+      <h3>Расходы по категориям (₽)</h3>
+      <div class="chart-wrapper"><canvas id="pieChart"></canvas></div>
+    </div>
+    <div class="chart-card">
+      <h3>Доходы и расходы за 6 месяцев (₽)</h3>
+      <div class="chart-wrapper"><canvas id="barChart"></canvas></div>
+    </div>
+  </section>
+
+  <section id="budgets">
+    <div class="budget-total" id="budgetTotal">
+      <div class="label">Общий бюджет (₽) · <span id="budgetMonthLabel"></span></div>
+      <div class="value" id="budgetTotalValue">Не задан</div>
+      <div class="progress-bar" id="budgetTotalBarWrap" hidden>
+        <div class="progress-fill" id="budgetTotalBar"></div>
+      </div>
+      <div class="pct" id="budgetTotalPct"></div>
+    </div>
+    
+    <div class="card" style="padding: 0; margin-bottom: 12px;">
+      <div id="budgetList"></div>
+    </div>
+
+    <div class="card">
+      <h3 style="font-size: 14px; margin-bottom: 12px; color: var(--text-muted); font-weight: 500;">
+        Установить бюджет на <span id="budgetFormMonthLabel" style="color: var(--primary);"></span>
+      </h3>
+      <div class="form-row">
+        <button type="button" id="budgetCatBtn" class="select-btn" onclick="openCatPicker()">
+          <span>Выберите...</span>
+          <i class="ph ph-caret-down" style="color: var(--text-muted);"></i>
+        </button>
+        <input type="hidden" id="budgetCategory" value="">
+        <input type="number" id="budgetLimit" placeholder="Лимит ₽" step="1" min="1">
+      </div>
+      <button class="submit-btn" id="saveBudgetBtn" style="margin-bottom: 8px;">Установить бюджет</button>
+      <button class="submit-btn" id="copyBudgetBtn" style="background: var(--input-bg); color: var(--primary); border: 1px dashed var(--primary);">📋 Перенести на следующий месяц</button>
+    </div>
+  </section>
+
+  <section id="capital">
+    <div class="card">
+      <h3 style="font-size: 14px; margin-bottom: 12px; color: var(--text-muted); font-weight: 500;">
+        Добавить актив или обязательство
+      </h3>
+      <form id="capitalForm">
+        <div class="type-toggle">
+          <button type="button" data-type="saving" class="active">🏦 Накопление</button>
+          <button type="button" data-type="debt">💳 Долг</button>
+        </div>
+        <div class="currency-toggle">
+          <button type="button" data-currency="RUB" class="active">₽ Рубли</button>
+          <button type="button" data-currency="USD">$ Доллары</button>
+        </div>
+        <div class="form-row">
+          <input type="number" id="capAmount" placeholder="Сумма" step="0.01" min="0.01" required>
+          <input type="text" id="capDesc" placeholder="Название (напр. Т-Банк)" required maxlength="40">
+        </div>
+        <div class="categories" id="capCategories"></div>
+        <button type="submit" class="submit-btn">Добавить</button>
+      </form>
+    </div>
+  </section>
+
+  <section id="settings">
+    <div class="settings-group">
+      <button class="settings-btn" id="exportBtn">📤 Экспорт данных (JSON)</button>
+      <button class="settings-btn" id="importBtn">📥 Импорт данных</button>
+      <input type="file" id="importFile" accept=".json,application/json" hidden>
+    </div>
+    <div class="settings-group">
+      <button class="settings-btn danger" id="clearBtn">🗑 Удалить все данные</button>
+    </div>
+    <p style="text-align:center; color: var(--text-muted); font-size: 12px; margin-top: 20px; margin-bottom: 20px;">
+      Мои финансы v5.2 · Данные хранятся на вашем устройстве
+    </p>
+  </section>
+</main>
+
+<nav class="tabs">
+  <button data-tab="transactions" class="active">
+    <span class="icon">
+      <svg viewBox="0 0 24 24"><path d="M21 2v6h-6"></path><path d="M3 12a9 9 0 0 1 15-6.7L21 8"></path><path d="M3 22v-6h6"></path><path d="M21 12a9 9 0 0 1-15 6.7L3 16"></path></svg>
+    </span>
+    <span class="text">Опер.</span>
+  </button>
+  <button data-tab="charts">
+    <span class="icon">
+      <svg viewBox="0 0 24 24"><rect x="3" y="3" width="18" height="18" rx="2" ry="2"></rect><line x1="8" y1="17" x2="8" y2="12"></line><line x1="12" y1="17" x2="12" y2="8"></line><line x1="16" y1="17" x2="16" y2="14"></line></svg>
+    </span>
+    <span class="text">Анализ</span>
+  </button>
+  <button data-tab="budgets">
+    <span class="icon">
+      <svg viewBox="0 0 24 24"><ellipse cx="12" cy="6" rx="8" ry="3"></ellipse><path d="M4 6v4c0 1.66 3.58 3 8 3s8-1.34 8-3V6"></path><path d="M4 10v4c0 1.66 3.58 3 8 3s8-1.34 8-3v-4"></path><path d="M4 14v4c0 1.66 3.58 3 8 3s8-1.34 8-3v-4"></path></svg>
+    </span>
+    <span class="text">Бюджет</span>
+  </button>
+  <button data-tab="capital">
+    <span class="icon">
+      <svg viewBox="0 0 24 24"><path d="M3 21h18"></path><path d="M3 10h18"></path><path d="M5 6l7-3 7 3"></path><path d="M4 10v11"></path><path d="M20 10v11"></path><path d="M8 14v3"></path><path d="M12 14v3"></path><path d="M16 14v3"></path></svg>
+    </span>
+    <span class="text">Капитал</span>
+  </button>
+  <button data-tab="settings">
+    <span class="icon">
+      <svg viewBox="0 0 24 24"><rect x="4" y="2" width="16" height="20" rx="2" ry="2"></rect><line x1="8" y1="6" x2="16" y2="6"></line><line x1="16" y1="14" x2="16.01" y2="14"></line><line x1="16" y1="18" x2="16.01" y2="18"></line><line x1="12" y1="14" x2="12.01" y2="14"></line><line x1="12" y1="18" x2="12.01" y2="18"></line><line x1="8" y1="14" x2="8.01" y2="14"></line><line x1="8" y1="18" x2="8.01" y2="18"></line></svg>
+    </span>
+    <span class="text">Ещё</span>
+  </button>
+</nav>
+
+<div id="editModal" class="modal-overlay">
+  <div class="modal-content">
+    <h3>Изменить запись</h3>
+    <input type="text" id="modalCapName" placeholder="Название">
+    <input type="number" id="modalCapAmount" placeholder="Сумма" step="0.01">
+    <div class="modal-actions">
+      <button class="cancel-btn" id="modalCancelBtn">Отмена</button>
+      <button class="submit-btn" id="modalSaveBtn">Сохранить</button>
+    </div>
+  </div>
+</div>
+
+<!-- Модальное окно для выбора категории (Кастомный селект) -->
+<div id="catPickerModal" class="modal-overlay bottom-sheet" style="display: none;">
+  <div class="modal-content">
+    <h3 style="text-align:center; margin-bottom: 16px;">Выберите категорию</h3>
+    <div id="catPickerList"></div>
+    <button class="cancel-btn" style="width:100%; margin-top: 12px; padding: 14px; border-radius: 10px; font-weight: 600;" onclick="document.getElementById('catPickerModal').style.display='none'">Отмена</button>
+  </div>
+</div>
+
+<div class="toast" id="toast"></div>
+
+<script src="https://unpkg.com/@phosphor-icons/web"></script>
+<script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
+<script>
+(function () {
+  'use strict';
+
+  const STORAGE_KEY = 'finance_transactions';
+  const BUDGETS_KEY = 'finance_budgets';
+  const CAPITAL_KEY = 'finance_capital';
+  const THEME_KEY = 'finance_theme';
+
+  const EXPENSE_CATS = [
+    { name: 'Еда', img: 'burger.png', color: '#f59e0b', bg: 'rgba(245,158,11,0.15)' },
+    { name: 'Кафе', icon: 'coffee', color: '#f97316', bg: 'rgba(249,115,22,0.15)' },
+    { name: 'Проезд', img: 'metro.png', color: '#ef4444', bg: 'rgba(239,68,68,0.15)' },
+    { name: 'Бензин', icon: 'gas-pump', color: '#f43f5e', bg: 'rgba(244,63,94,0.15)' },
+    { name: 'Транспорт', img: 'car.png', color: '#6366f1', bg: 'rgba(99,102,241,0.15)' },
+    { name: 'ЖКХ', icon: 'house', color: '#14b8a6', bg: 'rgba(20,184,166,0.15)' },
+    { name: 'Интернет', icon: 'wifi-high', color: '#06b6d4', bg: 'rgba(6,182,212,0.15)' },
+    { name: 'Мобильная связь', icon: 'device-mobile', color: '#0ea5e9', bg: 'rgba(14,165,233,0.15)' },
+    { name: 'Развлечения', icon: 'game-controller', color: '#a855f7', bg: 'rgba(168,85,247,0.15)' },
+    { name: 'Здоровье', icon: 'heartbeat', color: '#ef4444', bg: 'rgba(239,68,68,0.15)' },
+    { name: 'Одежда', icon: 't-shirt', color: '#ec4899', bg: 'rgba(236,72,153,0.15)' },
+    { name: 'Спорт', icon: 'barbell', color: '#84cc16', bg: 'rgba(132,204,22,0.15)' },
+    { name: 'Образование', icon: 'book-open', color: '#8b5cf6', bg: 'rgba(139,92,246,0.15)' },
+    { name: 'Питомцы', icon: 'paw-print', color: '#ca8a04', bg: 'rgba(202,138,4,0.15)' },
+    { name: 'Путешествия', icon: 'airplane', color: '#10b981', bg: 'rgba(16,185,129,0.15)' },
+    { name: 'Билеты', icon: 'ticket', color: '#d946ef', bg: 'rgba(217,70,239,0.15)' },
+    { name: 'Прочее', icon: 'package', color: '#64748b', bg: 'rgba(100,116,139,0.15)' }
+  ];
+  
+  const INCOME_CATS = [
+    { name: 'Зарплата', icon: 'briefcase', color: '#10b981', bg: 'rgba(16,185,129,0.15)' },
+    { name: 'Фриланс', icon: 'laptop', color: '#3b82f6', bg: 'rgba(59,130,246,0.15)' },
+    { name: 'Подарки', icon: 'gift', color: '#f43f5e', bg: 'rgba(244,63,94,0.15)' },
+    { name: 'Инвестиции', icon: 'chart-line-up', color: '#f59e0b', bg: 'rgba(245,158,11,0.15)' },
+    { name: 'Кэшбэк', icon: 'credit-card', color: '#6366f1', bg: 'rgba(99,102,241,0.15)' },
+    { name: 'Прочее', icon: 'package', color: '#64748b', bg: 'rgba(100,116,139,0.15)' }
+  ];
+
+  const SAVING_CATS = [
+    { name: 'Наличные', icon: 'money', color: '#10b981', bg: 'rgba(16,185,129,0.15)' }, 
+    { name: 'Накопительный счет', icon: 'bank', color: '#3b82f6', bg: 'rgba(59,130,246,0.15)' },
+    { name: 'Инвестиции', icon: 'chart-line-up', color: '#f59e0b', bg: 'rgba(245,158,11,0.15)' }, 
+    { name: 'Вклад', icon: 'lock', color: '#8b5cf6', bg: 'rgba(139,92,246,0.15)' },
+    { name: 'Мне должны', icon: 'arrow-up-right', color: '#14b8a6', bg: 'rgba(20,184,166,0.15)' }, 
+    { name: 'Прочее', icon: 'diamond', color: '#64748b', bg: 'rgba(100,116,139,0.15)' }
+  ];
+  
+  const DEBT_CATS = [
+    { name: 'Кредит', icon: 'bank', color: '#ef4444', bg: 'rgba(239,68,68,0.15)' }, 
+    { name: 'Взял в долг', icon: 'handshake', color: '#f97316', bg: 'rgba(249,115,22,0.15)' },
+    { name: 'Кредитка ВТБ', icon: 'credit-card', color: '#3b82f6', bg: 'rgba(59,130,246,0.15)' }, 
+    { name: 'Кредитка Т-Банк', icon: 'credit-card', color: '#facc15', bg: 'rgba(250,204,21,0.15)' },
+    { name: 'Ипотека', icon: 'house', color: '#8b5cf6', bg: 'rgba(139,92,246,0.15)' }, 
+    { name: 'Прочее', icon: 'package', color: '#64748b', bg: 'rgba(100,116,139,0.15)' }
+  ];
+  
+  const CHART_COLORS = ['#2b68ed','#f59e0b','#10b981','#ef4444','#8b5cf6','#06b6d4','#ec4899','#84cc16','#f97316','#14b8a6'];
+
+  const state = {
+    transactions: JSON.parse(localStorage.getItem(STORAGE_KEY) || '[]'),
+    budgets: JSON.parse(localStorage.getItem(BUDGETS_KEY) || '{}'),
+    capital: JSON.parse(localStorage.getItem(CAPITAL_KEY) || '[]'),
+    
+    selectedType: 'expense',
+    selectedCurrency: 'RUB',
+    selectedCategory: 'Еда',
+    selectedBudgetCategory: '',
+    editingId: null,
+    
+    capType: 'saving',
+    capCurrency: 'RUB',
+    capCategory: 'Наличные',
+
+    isSavingsExpanded: false,
+    isDebtsExpanded: false,
+
+    filterType: 'all',
+    filterPeriod: 'all',
+    chartPeriod: 'month',
+    pieChart: null,
+    barChart: null
+  };
+
+  let modalCapId = null;
+
+  const $ = id => document.getElementById(id);
+  const fmt = (n, curr = 'RUB') => n.toLocaleString('ru-RU', { maximumFractionDigits: 2 }) + (curr === 'USD' ? ' $' : ' ₽');
+  const isDark = () => document.documentElement.dataset.theme === 'dark';
+
+  function getMonthKey(date = new Date()) {
+    return `${date.getFullYear()}-${String(date.getMonth() + 1).padStart(2, '0')}`;
+  }
+  function getNextMonthKey(date = new Date()) {
+    const d = new Date(date);
+    d.setMonth(d.getMonth() + 1);
+    return getMonthKey(d);
+  }
+
+  function sanitizeBudgets() {
+    const currentMonth = getMonthKey();
+    const sanitized = {};
+    
+    let hasMonthKeys = false;
+    for (let key in state.budgets) {
+      if (key.match(/^\d{4}-\d{2}$/)) { hasMonthKeys = true; break; }
+    }
+
+    if (hasMonthKeys) {
+      for (let month in state.budgets) {
+        const budgetsForMonth = state.budgets[month];
+        if (typeof budgetsForMonth === 'object' && budgetsForMonth !== null) {
+          sanitized[month] = {};
+          for (let cat in budgetsForMonth) {
+            if (cat.match(/^\d{4}-\d{2}$/)) {
+              if (typeof budgetsForMonth[cat] === 'object') {
+                Object.assign(sanitized[month], budgetsForMonth[cat]);
+              }
+            } else if (typeof budgetsForMonth[cat] === 'number') {
+              sanitized[month][cat] = budgetsForMonth[cat];
+            }
+          }
+        }
+      }
+    } else {
+      sanitized[currentMonth] = {};
+      for (let cat in state.budgets) {
+        if (typeof state.budgets[cat] === 'number') {
+          sanitized[currentMonth][cat] = state.budgets[cat];
+        }
+      }
+    }
+    
+    state.budgets = sanitized;
+    saveBudgets();
+  }
+
+  function save() { localStorage.setItem(STORAGE_KEY, JSON.stringify(state.transactions)); }
+  function saveBudgets() { localStorage.setItem(BUDGETS_KEY, JSON.stringify(state.budgets)); }
+  function saveCapital() { localStorage.setItem(CAPITAL_KEY, JSON.stringify(state.capital)); }
+
+  function showToast(msg) {
+    const t = $('toast'); t.textContent = msg; t.classList.add('show');
+    clearTimeout(t._timer); t._timer = setTimeout(() => t.classList.remove('show'), 2500);
+  }
+
+  function getCatData(name, type = 'expense') {
+    let all = [];
+    if (type === 'saving') all = SAVING_CATS;
+    else if (type === 'debt') all = DEBT_CATS;
+    else all = [...EXPENSE_CATS, ...INCOME_CATS];
+    const f = all.find(c => c.name === name);
+    return f || { icon: 'package', color: '#64748b', bg: 'rgba(100,116,139,0.15)' };
+  }
+
+  // ИСПРАВЛЕНО: Добавлены стили для идеального центрирования картинок и SVG
+  function getIconHtml(catData, size = 18) {
+    if (catData.img) {
+      return `<img src="${catData.img}" style="width: ${size}px; height: ${size}px; object-fit: contain; display: block; margin: auto;">`;
+    }
+    return `<i class="ph-fill ph-${catData.icon}" style="color: ${catData.color}; font-size: ${size}px; display: flex; align-items: center; justify-content: center; width: ${size}px; height: ${size}px;"></i>`;
+  }
+
+  function isInPeriod(dateStr, period) {
+    if (period === 'all') return true;
+    const d = new Date(dateStr), now = new Date();
+    if (period === 'month') return d.getMonth() === now.getMonth() && d.getFullYear() === now.getFullYear();
+    if (period === 'week') return d >= new Date(now.getTime() - 7 * 24 * 60 * 60 * 1000);
+    return true;
+  }
+
+  function escapeHtml(str) {
+    return String(str).replace(/[&<>"']/g, s => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[s]));
+  }
+
+  function renderBalance() {
+    let rubInc = 0, rubExp = 0, usdInc = 0, usdExp = 0;
+    state.transactions.forEach(t => {
+      const curr = t.currency || 'RUB';
+      if (curr === 'RUB') {
+        if (t.type === 'income') rubInc += t.amount; else rubExp += t.amount;
+      } else if (curr === 'USD') {
+        if (t.type === 'income') usdInc += t.amount; else usdExp += t.amount;
+      }
+    });
+    $('balanceRUB').textContent = fmt(rubInc - rubExp, 'RUB');
+    $('balanceUSD').textContent = fmt(usdInc - usdExp, 'USD');
+    $('totalIncomeRUB').textContent = fmt(rubInc, 'RUB');
+    $('totalExpenseRUB').textContent = fmt(rubExp, 'RUB');
+    $('totalIncomeUSD').textContent = fmt(usdInc, 'USD');
+    $('totalExpenseUSD').textContent = fmt(usdExp, 'USD');
+  }
+
+  function renderCategories() {
+    const cats = state.selectedType === 'income' ? INCOME_CATS : EXPENSE_CATS;
+    if (!cats.find(c => c.name === state.selectedCategory)) state.selectedCategory = cats[0].name;
+    const container = $('categories'); container.innerHTML = '';
+    cats.forEach(c => {
+      const btn = document.createElement('button');
+      btn.type = 'button';
+      btn.className = 'chip' + (c.name === state.selectedCategory ? ' active' : '');
+      
+      if (c.name === state.selectedCategory) {
+        btn.style.backgroundColor = c.bg;
+        btn.style.color = c.color;
+      }
+
+      btn.innerHTML = `${getIconHtml(c, 18)} ${c.name}`;
+      btn.onclick = () => { state.selectedCategory = c.name; renderCategories(); };
+      container.appendChild(btn);
+    });
+  }
+
+  function renderList() {
+    const list = $('list'); list.innerHTML = '';
+    const filtered = state.transactions.filter(t => {
+      if (state.filterType !== 'all' && t.type !== state.filterType) return false;
+      return isInPeriod(t.date, state.filterPeriod);
+    }).sort((a, b) => new Date(b.date) - new Date(a.date));
+
+    if (filtered.length === 0) {
+      list.innerHTML = '<div class="empty">Нет операций.</div>'; return;
+    }
+
+    filtered.forEach(t => {
+      const curr = t.currency || 'RUB';
+      const catData = getCatData(t.category, t.type);
+      const div = document.createElement('div');
+      div.className = 'item';
+      div.innerHTML = `
+        <div class="cat-icon" style="background: ${catData.bg}; color: ${catData.color};">
+          ${getIconHtml(catData, 26)}
+        </div>
+        <div class="info">
+          <div class="desc">${escapeHtml(t.desc)}</div>
+          <div class="meta">${t.category} · ${new Date(t.date).toLocaleDateString('ru-RU')}</div>
+        </div>
+        <span class="amount ${t.type}">${t.type === 'income' ? '+' : '−'}${fmt(t.amount, curr)}</span>
+        <button class="del-btn">×</button>`;
+      div.onclick = (e) => {
+        if (e.target.closest('.del-btn')) {
+          if (confirm('Удалить операцию?')) {
+            state.transactions = state.transactions.filter(x => x.id !== t.id);
+            save(); renderAll();
+          }
+        } else {
+          startEdit(t.id);
+        }
+      };
+      list.appendChild(div);
+    });
+  }
+
+  function renderCapCategories() {
+    const cats = state.capType === 'saving' ? SAVING_CATS : DEBT_CATS;
+    if (!cats.find(c => c.name === state.capCategory)) state.capCategory = cats[0].name;
+    const container = $('capCategories'); container.innerHTML = '';
+    cats.forEach(c => {
+      const btn = document.createElement('button');
+      btn.type = 'button';
+      btn.className = 'chip' + (c.name === state.capCategory ? ' active' : '');
+      
+      if (c.name === state.capCategory) {
+        btn.style.backgroundColor = c.bg;
+        btn.style.color = c.color;
+      }
+
+      btn.innerHTML = `${getIconHtml(c, 18)} ${c.name}`;
+      btn.onclick = () => { state.capCategory = c.name; renderCapCategories(); };
+      container.appendChild(btn);
+    });
+  }
+
+  window.toggleCapitalDetail = function(type) {
+    if (type === 'saving') state.isSavingsExpanded = !state.isSavingsExpanded;
+    if (type === 'debt') state.isDebtsExpanded = !state.isDebtsExpanded;
+    renderCapital();
+  };
+
+  function renderCapital() {
+    let savRUB = 0, savUSD = 0, debtRUB = 0, debtUSD = 0;
+    
+    state.capital.forEach(c => {
+      if (c.type === 'saving') {
+        if (c.currency === 'RUB') savRUB += c.amount; else savUSD += c.amount;
+      } else {
+        if (c.currency === 'RUB') debtRUB += c.amount; else debtUSD += c.amount;
+      }
+    });
+
+    $('topSavingsRUB').textContent = fmt(savRUB, 'RUB');
+    $('topSavingsUSD').textContent = fmt(savUSD, 'USD');
+    $('topDebtsRUB').textContent = fmt(debtRUB, 'RUB');
+    $('topDebtsUSD').textContent = fmt(debtUSD, 'USD');
+    
+    const netRUB = savRUB - debtRUB;
+    const netUSD = savUSD - debtUSD;
+    $('topNetWorth').textContent = `${fmt(netRUB, 'RUB')} / ${fmt(netUSD, 'USD')}`;
+
+    const sDetails = $('savingsDetails');
+    sDetails.innerHTML = '';
+    sDetails.className = 'capital-details' + (state.isSavingsExpanded ? ' show' : '');
+    if (state.isSavingsExpanded) {
+      const savings = state.capital.filter(c => c.type === 'saving').sort((a,b) => b.amount - a.amount);
+      if (savings.length === 0) {
+        sDetails.innerHTML = '<div style="font-size:13px; opacity:0.8; text-align:center; padding:10px 0;">Пусто</div>';
+      } else {
+        savings.forEach(c => {
+          const catData = getCatData(c.category, 'saving');
+          const div = document.createElement('div');
+          div.className = 'cap-detail-item';
+          div.innerHTML = `
+            <span class="name">${getIconHtml(catData, 16)} <span style="margin-left: 6px;">${escapeHtml(c.name)} (${c.currency})</span></span>
+            <span class="amount">${fmt(c.amount, c.currency)}</span>
+            <span class="del">×</span>
+          `;
+          div.onclick = (e) => {
+            if (e.target.closest('.del')) {
+              if (confirm('Удалить эту запись?')) {
+                state.capital = state.capital.filter(x => x.id !== c.id);
+                saveCapital(); renderCapital();
+              }
+            } else {
+              openEditModal(c.id);
+            }
+          };
+          sDetails.appendChild(div);
+        });
+      }
+    }
+
+    const dDetails = $('debtsDetails');
+    dDetails.innerHTML = '';
+    dDetails.className = 'capital-details' + (state.isDebtsExpanded ? ' show' : '');
+    if (state.isDebtsExpanded) {
+      const debts = state.capital.filter(c => c.type === 'debt').sort((a,b) => b.amount - a.amount);
+      if (debts.length === 0) {
+        dDetails.innerHTML = '<div style="font-size:13px; opacity:0.8; text-align:center; padding:10px 0;">Пусто</div>';
+      } else {
+        debts.forEach(c => {
+          const catData = getCatData(c.category, 'debt');
+          const div = document.createElement('div');
+          div.className = 'cap-detail-item';
+          div.innerHTML = `
+            <span class="name">${getIconHtml(catData, 16)} <span style="margin-left: 6px;">${escapeHtml(c.name)} (${c.currency})</span></span>
+            <span class="amount">${fmt(c.amount, c.currency)}</span>
+            <span class="del">×</span>
+          `;
+          div.onclick = (e) => {
+            if (e.target.closest('.del')) {
+              if (confirm('Удалить эту запись?')) {
+                state.capital = state.capital.filter(x => x.id !== c.id);
+                saveCapital(); renderCapital();
+              }
+            } else {
+              openEditModal(c.id);
+            }
+          };
+          dDetails.appendChild(div);
+        });
+      }
+    }
+  }
+
+  function openEditModal(id) {
+    const c = state.capital.find(x => x.id === id);
+    if (!c) return;
+    modalCapId = id;
+    $('modalCapName').value = c.name;
+    $('modalCapAmount').value = c.amount;
+    $('editModal').style.display = 'flex';
+  }
+
+  function closeEditModal() {
+    $('editModal').style.display = 'none';
+    modalCapId = null;
+  }
+
+  function setupModal() {
+    $('modalCancelBtn').onclick = closeEditModal;
+    $('modalSaveBtn').onclick = () => {
+      if (!modalCapId) return;
+      const c = state.capital.find(x => x.id === modalCapId);
+      const amount = parseFloat($('modalCapAmount').value);
+      const name = $('modalCapName').value.trim();
+      if (c && amount >= 0 && name) {
+        c.amount = amount;
+        c.name = name;
+        saveCapital();
+        renderCapital();
+        closeEditModal();
+        showToast('Сохранено');
+      } else {
+        showToast('Введите корректные данные');
+      }
+    };
+    $('editModal').onclick = (e) => {
+      if (e.target === $('editModal')) closeEditModal();
+    };
+
+    // ЗАКРЫТИЕ ПО ТАПУ НА ФОН ВЫБОРА КАТЕГОРИИ
+    const catModal = $('catPickerModal');
+    catModal.onclick = (e) => {
+      if (e.target === catModal) {
+        catModal.style.display = 'none';
+      }
+    };
+  }
+
+  function renderBudgets() {
+    const now = new Date();
+    const monthNames = ['Январь','Февраль','Март','Апрель','Май','Июнь','Июль','Август','Сентябрь','Октябрь','Ноябрь','Декабрь'];
+    const currentMonthKey = getMonthKey(now);
+    const currentMonthName = `${monthNames[now.getMonth()]} ${now.getFullYear()}`;
+    
+    $('budgetMonthLabel').textContent = currentMonthName;
+    $('budgetFormMonthLabel').textContent = currentMonthName;
+
+    const currentBudgets = state.budgets[currentMonthKey] || {};
+
+    const spent = {};
+    state.transactions.forEach(t => {
+      if (t.type !== 'expense' || (t.currency || 'RUB') !== 'RUB') return;
+      const d = new Date(t.date);
+      if (d.getMonth() === now.getMonth() && d.getFullYear() === now.getFullYear()) {
+        spent[t.category] = (spent[t.category] || 0) + t.amount;
+      }
+    });
+
+    const entries = Object.entries(currentBudgets);
+    
+    const totalLimit = entries.reduce((s, [, v]) => s + (typeof v === 'number' ? v : 0), 0);
+    const totalSpent = entries.reduce((s, [cat]) => s + (spent[cat] || 0), 0);
+
+    if (totalLimit === 0) {
+      $('budgetTotalValue').textContent = 'Не задан';
+      $('budgetTotalBarWrap').hidden = true;
+      $('budgetTotalPct').textContent = '';
+    } else {
+      $('budgetTotalValue').textContent = `${fmt(totalSpent, 'RUB')} / ${fmt(totalLimit, 'RUB')}`;
+      $('budgetTotalBarWrap').hidden = false;
+      const pct = Math.min((totalSpent / totalLimit) * 100, 100);
+      $('budgetTotalBar').style.width = pct + '%';
+      $('budgetTotalBar').className = 'progress-fill' + (totalSpent > totalLimit ? ' danger' : totalSpent / totalLimit >= 0.8 ? ' warn' : '');
+      $('budgetTotalPct').textContent = `${Math.round((totalSpent / totalLimit) * 100)}%`;
+    }
+
+    const list = $('budgetList'); list.innerHTML = '';
+    if (entries.length === 0) {
+      list.innerHTML = '<div class="empty">Бюджеты на этот месяц не заданы.</div>';
+    } else {
+      entries.sort((a, b) => {
+        const valA = typeof a[1] === 'number' ? a[1] : 0;
+        const valB = typeof b[1] === 'number' ? b[1] : 0;
+        return valB - valA;
+      }).forEach(([cat, limit]) => {
+        if (cat.match(/^\d{4}-\d{2}$/) || typeof limit !== 'number') return;
+
+        const s = spent[cat] || 0;
+        const pct = limit > 0 ? (s / limit) * 100 : 0;
+        let cls = pct > 100 ? 'danger' : pct >= 80 ? 'warn' : '';
+        const catData = getCatData(cat, 'expense');
+
+        const div = document.createElement('div');
+        div.className = 'budget-item';
+        div.innerHTML = `
+          <div class="cat-icon" style="background: ${catData.bg}; color: ${catData.color};">
+            ${getIconHtml(catData, 26)}
+          </div>
+          <div class="budget-body">
+            <div class="budget-head">
+              <span class="budget-name">${escapeHtml(cat)} ${cls === 'warn' ? '⚠️' : cls === 'danger' ? '🔴' : ''}</span>
+              <span class="budget-nums"><span class="spent">${fmt(s, 'RUB')}</span> <span class="limit">/ ${fmt(limit, 'RUB')}</span></span>
+            </div>
+            <div class="progress-bar"><div class="progress-fill ${cls}" style="width: ${Math.min(pct, 100)}%"></div></div>
+          </div>`;
+        div.onclick = () => {
+          if (confirm(`Удалить бюджет «${cat}» на этот месяц?`)) {
+            delete state.budgets[currentMonthKey][cat]; 
+            saveBudgets(); renderBudgets();
+          }
+        };
+        list.appendChild(div);
+      });
+    }
+
+    updateBudgetCatBtn();
+  }
+
+  window.openCatPicker = function() {
+    const list = $('catPickerList');
+    list.innerHTML = '';
+    EXPENSE_CATS.forEach(c => {
+      const div = document.createElement('div');
+      div.className = 'cat-picker-item';
+      // ИСПРАВЛЕНО: Идеальное центрирование через класс cat-picker-icon
+      div.innerHTML = `
+        <div class="cat-picker-icon" style="background: ${c.bg};">
+          ${getIconHtml(c, 22)}
+        </div>
+        <div class="info"><div class="desc" style="font-weight: 500;">${c.name}</div></div>
+      `;
+      div.onclick = () => {
+        state.selectedBudgetCategory = c.name;
+        updateBudgetCatBtn();
+        $('catPickerModal').style.display = 'none';
+      };
+      list.appendChild(div);
+    });
+    $('catPickerModal').style.display = 'flex';
+  };
+
+  function updateBudgetCatBtn() {
+    const btn = $('budgetCatBtn');
+    if (!state.selectedBudgetCategory) {
+      btn.innerHTML = `<span>Выберите</span><i class="ph ph-caret-down" style="color: var(--text-muted);"></i>`;
+      $('budgetCategory').value = '';
+      return;
+    }
+    const c = getCatData(state.selectedBudgetCategory, 'expense');
+    btn.innerHTML = `
+      <div style="display:flex; align-items:center; gap:8px; overflow:hidden;">
+        <div style="background: ${c.bg}; color: ${c.color}; width: 24px; height: 24px; border-radius: 6px; display:flex; justify-content:center; align-items:center; flex-shrink:0;">${getIconHtml(c, 14)}</div>
+        <span style="overflow:hidden; text-overflow:ellipsis; white-space:nowrap;">${c.name}</span>
+      </div>
+      <i class="ph ph-caret-down" style="color: var(--text-muted); flex-shrink:0;"></i>
+    `;
+    $('budgetCategory').value = state.selectedBudgetCategory;
+  }
+
+  function renderPieChart() {
+    if (typeof Chart === 'undefined') return;
+    const ctx = $('pieChart');
+    if (state.pieChart) { state.pieChart.destroy(); state.pieChart = null; }
+    const data = {};
+    state.transactions.filter(t => t.type === 'expense' && (t.currency || 'RUB') === 'RUB' && isInPeriod(t.date, state.chartPeriod))
+      .forEach(t => { data[t.category] = (data[t.category] || 0) + t.amount; });
+    const labels = Object.keys(data), values = Object.values(data);
+    const textColor = isDark() ? '#94a3b8' : '#6b7280';
+    const isEmpty = labels.length === 0;
+
+    state.pieChart = new Chart(ctx, {
+      type: 'doughnut',
+      data: {
+        labels: isEmpty ? ['Нет данных'] : labels,
+        datasets: [{ data: isEmpty ? [1] : values, backgroundColor: isEmpty ? [isDark() ? '#334155' : '#e5e7eb'] : CHART_COLORS, borderWidth: 0, hoverOffset: isEmpty ? 0 : 6 }]
+      },
+      options: { responsive: true, maintainAspectRatio: false, cutout: '60%', plugins: { legend: { display: !isEmpty, position: 'bottom', labels: { color: textColor, padding: 12, font: { size: 12 } } }, tooltip: { enabled: !isEmpty, callbacks: { label: c => `${c.label}: ${fmt(c.raw, 'RUB')}` } } } }
+    });
+  }
+
+  function renderBarChart() {
+    if (typeof Chart === 'undefined') return;
+    const ctx = $('barChart');
+    if (state.barChart) { state.barChart.destroy(); state.barChart = null; }
+    const months = [];
+    for (let i = 5; i >= 0; i--) {
+      const d = new Date(); d.setDate(1); d.setMonth(d.getMonth() - i);
+      months.push({ year: d.getFullYear(), month: d.getMonth(), label: d.toLocaleDateString('ru-RU', { month: 'short' }), income: 0, expense: 0 });
+    }
+    state.transactions.forEach(t => {
+      if ((t.currency || 'RUB') !== 'RUB') return;
+      const td = new Date(t.date);
+      const m = months.find(x => x.year === td.getFullYear() && x.month === td.getMonth());
+      if (m) t.type === 'income' ? m.income += t.amount : m.expense += t.amount;
+    });
+    const textColor = isDark() ? '#94a3b8' : '#6b7280';
+    const gridColor = isDark() ? '#334155' : '#e5e7eb';
+    state.barChart = new Chart(ctx, {
+      type: 'bar',
+      data: { labels: months.map(m => m.label), datasets: [ { label: 'Доходы', data: months.map(m => m.income), backgroundColor: '#10b981', borderRadius: 6 }, { label: 'Расходы', data: months.map(m => m.expense), backgroundColor: '#ef4444', borderRadius: 6 } ] },
+      options: { responsive: true, maintainAspectRatio: false, plugins: { legend: { position: 'bottom', labels: { color: textColor, padding: 12, font: { size: 12 } } }, tooltip: { callbacks: { label: c => `${c.dataset.label}: ${fmt(c.raw, 'RUB')}` } } }, scales: { x: { ticks: { color: textColor }, grid: { display: false } }, y: { ticks: { color: textColor, callback: v => v.toLocaleString('ru-RU') }, grid: { color: gridColor } } } }
+    });
+  }
+
+  function renderAll() {
+    renderBalance(); renderList(); renderCapital(); renderBudgets();
+  }
+
+  function resetForm() {
+    state.editingId = null;
+    $('amount').value = ''; $('desc').value = '';
+    $('submitBtn').textContent = 'Добавить'; $('cancelEdit').hidden = true;
+  }
+
+  function startEdit(id) {
+    const t = state.transactions.find(x => x.id === id); if (!t) return;
+    switchTab('transactions');
+    state.editingId = id; state.selectedType = t.type; state.selectedCurrency = t.currency || 'RUB'; state.selectedCategory = t.category;
+    $('amount').value = t.amount; $('desc').value = t.desc;
+    $('submitBtn').textContent = 'Сохранить'; $('cancelEdit').hidden = false;
+    document.querySelectorAll('#transactions .type-toggle button').forEach(b => b.classList.toggle('active', b.dataset.type === state.selectedType));
+    document.querySelectorAll('#transactions .currency-toggle button').forEach(b => b.classList.toggle('active', b.dataset.currency === state.selectedCurrency));
+    renderCategories(); window.scrollTo({ top: 0, behavior: 'smooth' }); $('amount').focus();
+  }
+
+  function setupForms() {
+    document.querySelectorAll('#transactions .type-toggle button').forEach(btn => {
+      btn.onclick = () => {
+        state.selectedType = btn.dataset.type;
+        document.querySelectorAll('#transactions .type-toggle button').forEach(b => b.classList.toggle('active', b.dataset.type === state.selectedType));
+        renderCategories();
+      };
+    });
+    document.querySelectorAll('#transactions .currency-toggle button').forEach(btn => {
+      btn.onclick = () => {
+        state.selectedCurrency = btn.dataset.currency;
+        document.querySelectorAll('#transactions .currency-toggle button').forEach(b => b.classList.toggle('active', b.dataset.currency === state.selectedCurrency));
+      };
+    });
+    $('form').onsubmit = e => {
+      e.preventDefault();
+      const amount = parseFloat($('amount').value), desc = $('desc').value.trim();
+      if (!desc || !amount || amount <= 0) return;
+      if (state.editingId) {
+        const t = state.transactions.find(x => x.id === state.editingId);
+        if (t) Object.assign(t, { amount, desc, type: state.selectedType, currency: state.selectedCurrency, category: state.selectedCategory });
+        showToast('Обновлено');
+      } else {
+        state.transactions.push({ id: Date.now() + Math.random(), amount, desc, type: state.selectedType, currency: state.selectedCurrency, category: state.selectedCategory, date: new Date().toISOString() });
+        showToast('Добавлено');
+      }
+      save(); resetForm(); renderAll();
+    };
+    $('cancelEdit').onclick = () => resetForm();
+
+    document.querySelectorAll('#capital .type-toggle button').forEach(btn => {
+      btn.onclick = () => {
+        state.capType = btn.dataset.type;
+        document.querySelectorAll('#capital .type-toggle button').forEach(b => b.classList.toggle('active', b.dataset.type === state.capType));
+        renderCapCategories();
+      };
+    });
+    document.querySelectorAll('#capital .currency-toggle button').forEach(btn => {
+      btn.onclick = () => {
+        state.capCurrency = btn.dataset.currency;
+        document.querySelectorAll('#capital .currency-toggle button').forEach(b => b.classList.toggle('active', b.dataset.currency === state.capCurrency));
+      };
+    });
+    $('capitalForm').onsubmit = e => {
+      e.preventDefault();
+      const amount = parseFloat($('capAmount').value), name = $('capDesc').value.trim();
+      if (!name || !amount || amount <= 0) return;
+      state.capital.push({ id: Date.now() + Math.random(), amount, name, type: state.capType, currency: state.capCurrency, category: state.capCategory });
+      saveCapital(); 
+      $('capAmount').value = ''; $('capDesc').value = ''; 
+      renderCapital();
+      showToast('Добавлено');
+    };
+  }
+
+  function setupBudgets() {
+    $('saveBudgetBtn').onclick = () => {
+      const cat = $('budgetCategory').value;
+      const limit = parseFloat($('budgetLimit').value);
+      if (!cat) { showToast('Выберите категорию'); return; }
+      if (!limit || limit <= 0) { showToast('Введите корректный лимит'); return; }
+      
+      const currentMonthKey = getMonthKey();
+      if (!state.budgets[currentMonthKey]) state.budgets[currentMonthKey] = {};
+      
+      state.budgets[currentMonthKey][cat] = limit; 
+      saveBudgets(); renderBudgets(); $('budgetLimit').value = ''; 
+      showToast(`Бюджет «${cat}» установлен`);
+    };
+
+    $('copyBudgetBtn').onclick = () => {
+      const currentMonthKey = getMonthKey();
+      const nextMonthKey = getNextMonthKey();
+      
+      const currentBudgets = state.budgets[currentMonthKey] || {};
+      if (Object.keys(currentBudgets).length === 0) {
+        showToast('Нет бюджета для переноса'); return;
+      }
+      
+      state.budgets[nextMonthKey] = { ...currentBudgets };
+      saveBudgets();
+      showToast('Бюджет успешно перенесен на следующий месяц!');
+    };
+  }
+
+  function switchTab(name) {
+    document.querySelectorAll('.tabs button').forEach(b => b.classList.toggle('active', b.dataset.tab === name));
+    document.querySelectorAll('main > section').forEach(s => s.classList.toggle('active', s.id === name));
+    
+    const isCap = (name === 'capital');
+    $('mainBalanceCard').style.display = isCap ? 'none' : 'flex';
+    $('capitalBalanceCard').style.display = isCap ? 'flex' : 'none';
+
+    if (name === 'charts') setTimeout(() => { renderPieChart(); renderBarChart(); }, 60);
+    if (name === 'budgets') renderBudgets();
+    if (name === 'capital') renderCapital();
+  }
+  function setupTabs() { document.querySelectorAll('.tabs button').forEach(btn => btn.onclick = () => switchTab(btn.dataset.tab)); }
+
+  function setupFilters() {
+    document.querySelectorAll('[data-filter-type]').forEach(btn => {
+      btn.onclick = () => { state.filterType = btn.dataset.filterType; document.querySelectorAll('[data-filter-type]').forEach(b => b.classList.toggle('active', b.dataset.filterType === state.filterType)); renderList(); };
+    });
+    document.querySelectorAll('[data-filter-period]').forEach(btn => {
+      btn.onclick = () => {
+        const isActive = btn.classList.contains('active');
+        state.filterPeriod = isActive ? 'all' : btn.dataset.filterPeriod;
+        document.querySelectorAll('[data-filter-period]').forEach(b => b.classList.toggle('active', b.dataset.filterPeriod === state.filterPeriod));
+        renderList();
+      };
+    });
+    document.querySelectorAll('[data-chart-period]').forEach(btn => {
+      btn.onclick = () => { state.chartPeriod = btn.dataset.chartPeriod; document.querySelectorAll('[data-chart-period]').forEach(b => b.classList.toggle('active', b.dataset.chartPeriod === state.chartPeriod)); renderPieChart(); };
+    });
+  }
+
+  function setupTheme() {
+    const saved = localStorage.getItem(THEME_KEY) || 'light';
+    document.documentElement.dataset.theme = saved;
+    const updateBtn = () => $('themeToggle').textContent = isDark() ? '☀️' : '🌙';
+    updateBtn();
+    $('themeToggle').onclick = () => {
+      const next = isDark() ? 'light' : 'dark';
+      document.documentElement.dataset.theme = next; localStorage.setItem(THEME_KEY, next);
+      updateBtn(); renderPieChart(); renderBarChart();
+    };
+  }
+
+  function setupSettings() {
+    $('exportBtn').onclick = () => {
+      const data = { transactions: state.transactions, budgets: state.budgets, capital: state.capital };
+      const blob = new Blob([JSON.stringify(data, null, 2)], { type: 'application/json' });
+      const url = URL.createObjectURL(blob);
+      const a = document.createElement('a'); a.href = url; a.download = `finance-backup-${new Date().toISOString().slice(0, 10)}.json`;
+      a.click(); URL.revokeObjectURL(url); showToast('Данные экспортированы');
+    };
+    $('importBtn').onclick = () => $('importFile').click();
+    $('importFile').onchange = e => {
+      const file = e.target.files[0]; if (!file) return;
+      const reader = new FileReader();
+      reader.onload = ev => {
+        try {
+          const raw = JSON.parse(ev.target.result);
+          let txns, budgets, capital;
+          if (Array.isArray(raw)) { txns = raw; budgets = state.budgets; capital = state.capital; }
+          else { txns = raw.transactions || []; budgets = raw.budgets || {}; capital = raw.capital || []; }
+          if (!Array.isArray(txns)) throw new Error('Неверный формат');
+          if (!confirm('Импортировать данные? Текущие данные будут заменены.')) return;
+          state.transactions = txns; state.budgets = budgets; state.capital = capital;
+          save(); saveBudgets(); saveCapital(); renderAll(); showToast('Данные импортированы');
+        } catch (err) { alert('Ошибка импорта: ' + err.message); }
+      };
+      reader.readAsText(file); e.target.value = '';
+    };
+    $('clearBtn').onclick = () => {
+      if (confirm('Удалить ВСЕ данные (операции, бюджеты и капитал)?')) {
+        state.transactions = []; state.budgets = {}; state.capital = [];
+        save(); saveBudgets(); saveCapital(); renderAll(); showToast('Все данные удалены');
+      }
+    };
+  }
+
+  function setupPWA() {
+    if ('serviceWorker' in navigator) navigator.serviceWorker.register('sw.js').catch(err => console.warn('SW error:', err));
+    let deferredPrompt;
+    window.addEventListener('beforeinstallprompt', e => { e.preventDefault(); deferredPrompt = e; $('installBanner').classList.add('show'); });
+    $('installBtn').onclick = async () => {
+      if (!deferredPrompt) return; deferredPrompt.prompt();
+      const { outcome } = await deferredPrompt.userChoice;
+      if (outcome === 'accepted') $('installBanner').classList.remove('show');
+      deferredPrompt = null;
+    };
+    window.addEventListener('appinstalled', () => { $('installBanner').classList.remove('show'); showToast('Приложение установлено!'); });
+  }
+
+  function init() {
+    sanitizeBudgets();
+    setupTheme(); setupTabs(); setupForms(); setupBudgets(); setupFilters(); setupSettings(); setupPWA(); setupModal();
+    renderCategories(); renderCapCategories(); renderAll();
+  }
+
+  if (document.readyState === 'loading') document.addEventListener('DOMContentLoaded', init);
+  else init();
+})();
+</script>
+</body>
+</html>
