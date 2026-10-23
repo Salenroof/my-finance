@@ -244,7 +244,6 @@
   .cat-picker-row:active {
     transform: scale(0.97);
   }
-  /* .item НЕ включаем — там transform занят свайпом */
 
   /* ========== RIPPLE ========== */
   .ripple-host {
@@ -381,13 +380,19 @@
   }
   .submit-btn:hover { opacity: 0.9; }
   
-  .filters { display: flex; gap: 6px; margin-bottom: 12px; overflow-x: auto; padding-bottom: 4px; }
+  .filters { 
+    display: flex; gap: 6px; margin-bottom: 12px; 
+    overflow-x: auto; padding-bottom: 4px;
+    scrollbar-width: none; -ms-overflow-style: none;
+  }
+  .filters::-webkit-scrollbar { display: none; }
   .filters button {
     padding: 6px 12px; border: none; background: var(--input-bg); color: var(--text-muted); border-radius: 20px; font-size: 12px; cursor: pointer; white-space: nowrap; font-family: inherit; transition: all 0.2s;
   }
   .filters button.active { background: var(--primary); color: white; }
   
-  #list { overflow: hidden; }
+  #list { overflow: hidden; border-radius: 20px; }
+  #budgetList, #achievementsList { border-radius: 20px; overflow: hidden; }
   .item {
     display: flex; align-items: center; gap: 12px; padding: 12px; border-bottom: 1px solid var(--border); cursor: pointer;
     background: var(--card); transition: transform 0.2s, background 0.2s; position: relative;
@@ -979,7 +984,7 @@
     </div>
     
     <p style="text-align:center; color: var(--text-muted); font-size: 12px; margin-top: 20px; margin-bottom: 20px;">
-      Мои финансы v7.3 · Данные хранятся на вашем устройстве
+      Мои финансы v7.4 · Данные хранятся на вашем устройстве
     </p>
   </section>
 
@@ -1913,7 +1918,6 @@
     btn.innerHTML = `${getIconHtml(c, 18)} <span>${c.name}</span>`;
     btn.onclick = () => {
       state.selectedCategory = c.name;
-      // Обновляем active-классы без пересоздания DOM, чтобы ripple успел отыграть
       document.querySelectorAll('#categories .chip').forEach(ch => {
         const name = ch.dataset.catName;
         if (!name) return;
@@ -1947,11 +1951,9 @@
     let quick;
     const custom = state.quickCats[state.selectedType] || [];
     if (custom.length > 0) {
-      // Пользователь настроил вручную
       quick = custom
         .map(n => indexed.find(c => c.name === n))
         .filter(Boolean);
-      // Если выбранная категория не в quick — добавим её в конец (но не больше 5)
       if (!quick.find(c => c.name === state.selectedCategory)) {
         const selected = indexed.find(c => c.name === state.selectedCategory);
         if (selected) {
@@ -1960,7 +1962,6 @@
         }
       }
     } else {
-      // Авторасчёт по частоте
       const sortedByFreq = [...indexed].sort((a, b) => {
         if (b.f !== a.f) return b.f - a.f;
         return a.origIdx - b.origIdx;
@@ -2135,16 +2136,7 @@
     const netEl = $('topNetWorth');
     const netRUB = savRUB - debtRUB;
     const netUSD = savUSD - debtUSD;
-    // Анимируем через установку составной строки
-    const prevNet = animatedValues.get(netEl);
-    if (prevNet === undefined) {
-      netEl.textContent = `${fmt(netRUB, 'RUB')} / ${fmt(netUSD, 'USD')}`;
-      animatedValues.set(netEl, { rub: netRUB, usd: netUSD });
-    } else {
-      // Простое обновление (без сложной анимации составных значений)
-      netEl.textContent = `${fmt(netRUB, 'RUB')} / ${fmt(netUSD, 'USD')}`;
-      animatedValues.set(netEl, { rub: netRUB, usd: netUSD });
-    }
+    netEl.textContent = `${fmt(netRUB, 'RUB')} / ${fmt(netUSD, 'USD')}`;
 
     const sDetails = $('savingsDetails');
     sDetails.innerHTML = '';
@@ -2272,7 +2264,6 @@
       $('budgetTotalPct').textContent = '';
     } else {
       const valEl = $('budgetTotalValue');
-      // Составная строка — анимируем не как число, а просто обновляем
       valEl.textContent = `${fmt(totalSpent, 'RUB')} / ${fmt(totalLimit, 'RUB')}`;
       $('budgetTotalBarWrap').hidden = false;
       const pct = Math.min((totalSpent / totalLimit) * 100, 100);
@@ -2777,7 +2768,6 @@
     if (name === 'capital') renderCapital();
     if (name === 'transactions') checkReminder();
     
-    // Двигаем индикатор вкладок
     setTimeout(() => moveTabIndicator(true), 0);
   }
   
@@ -3045,7 +3035,6 @@
     
     const color = total >= 80 ? '#10b981' : total >= 50 ? '#f59e0b' : '#ef4444';
     
-    // Анимируем кольцо и число
     animateHealthRing(total, color);
     animateValue($('healthScore'), total, v => Math.round(v).toString(), 1100);
     $('healthScore').style.color = color;
@@ -3276,7 +3265,6 @@
     themeSwitch.checked = (savedTheme === 'dark');
     themeSwitch.onchange = () => {
       const next = themeSwitch.checked ? 'dark' : 'light';
-      // Плавная смена темы
       document.documentElement.classList.add('theme-transitioning');
       document.documentElement.dataset.theme = next;
       localStorage.setItem(THEME_KEY, next);
@@ -3289,7 +3277,6 @@
           renderPieChart(); renderBarChart(); renderWeekdayChart(); renderWaterfall();
         }, 100);
       }
-      // Обновляем health ring при смене темы (если экран открыт)
       if (currentSubScreen === 'health-check') {
         setTimeout(renderHealthCheck, 100);
       }
@@ -3378,11 +3365,9 @@
     sanitizeBudgets();
     setupTheme(); setupTabs(); setupForms(); setupBudgets(); setupFilters(); setupSettings(); setupPWA(); setupModal(); setupSwipeBack(); setupSwipeItems(); setupQuickCatsScreen();
     renderCategories(); renderCapCategories(); renderAll(); renderActiveStrategy();
-    // Индикатор вкладок: после первого рендера
     requestAnimationFrame(() => {
       moveTabIndicator(false);
     });
-    // Resize handler
     window.addEventListener('resize', () => moveTabIndicator(false));
     window.addEventListener('orientationchange', () => setTimeout(() => moveTabIndicator(false), 200));
   }
