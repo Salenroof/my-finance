@@ -187,6 +187,7 @@
     margin-left: 6px; vertical-align: middle; font-weight: 500;
   }
 
+  /* ========== TABS + TAB INDICATOR ========== */
   .tabs {
     position: fixed; bottom: 0; left: 0; right: 0; display: flex; background: var(--card);
     padding: 6px 0 calc(6px + env(safe-area-inset-bottom, 0px)) 0;
@@ -197,7 +198,24 @@
     box-shadow: 0 -2px 20px rgba(0,0,0,0.5); 
     border-top: 1px solid var(--border);
   }
+  .tab-indicator {
+    position: absolute;
+    top: 6px;
+    left: 0;
+    height: calc(100% - 12px - env(safe-area-inset-bottom, 0px));
+    background: var(--primary-light);
+    border-radius: 12px;
+    transition: transform 0.35s cubic-bezier(0.4, 0, 0.2, 1), width 0.35s cubic-bezier(0.4, 0, 0.2, 1);
+    pointer-events: none;
+    z-index: 0;
+    will-change: transform, width;
+  }
+  .tab-indicator.no-transition {
+    transition: none !important;
+  }
   .tabs button {
+    position: relative;
+    z-index: 1;
     flex: 1; display: flex; flex-direction: column; align-items: center; justify-content: center;
     background: none; border: none; color: var(--text-muted);
     font-size: 10px; font-weight: 500; cursor: pointer; padding: 4px 0; transition: color 0.2s; font-family: inherit;
@@ -205,6 +223,86 @@
   .tabs button .icon { width: 24px; height: 24px; margin-bottom: 4px; display: flex; align-items: center; justify-content: center; }
   .tabs button .icon svg { width: 100%; height: 100%; stroke: currentColor; stroke-width: 1.8; stroke-linecap: round; stroke-linejoin: round; fill: none; transition: stroke 0.2s; }
   .tabs button.active { color: var(--primary); }
+
+  /* ========== PRESS EFFECT ========== */
+  button,
+  .chip,
+  .cat-picker-item,
+  .budget-item,
+  .data-menu-btn,
+  .settings-btn,
+  .cat-picker-row {
+    transition: transform 0.12s ease, background 0.2s, color 0.2s, border-color 0.2s;
+    will-change: transform;
+  }
+  button:active,
+  .chip:active,
+  .cat-picker-item:active,
+  .budget-item:active,
+  .data-menu-btn:active,
+  .settings-btn:active,
+  .cat-picker-row:active {
+    transform: scale(0.97);
+  }
+  /* .item НЕ включаем — там transform занят свайпом */
+
+  /* ========== RIPPLE ========== */
+  .ripple-host {
+    position: relative;
+    overflow: hidden;
+  }
+  .ripple {
+    position: absolute;
+    border-radius: 50%;
+    background: rgba(255,255,255,0.45);
+    transform: scale(0);
+    animation: rippleEffect 0.6s ease-out;
+    pointer-events: none;
+    z-index: 0;
+  }
+  [data-theme="dark"] .ripple {
+    background: rgba(255,255,255,0.18);
+  }
+  @keyframes rippleEffect {
+    to {
+      transform: scale(4);
+      opacity: 0;
+    }
+  }
+
+  /* ========== SHIMMER FOR WARN/DANGER ========== */
+  @keyframes shimmerMove {
+    0% { background-position: -200% 0; }
+    100% { background-position: 200% 0; }
+  }
+  .budget-item .progress-fill.warn {
+    background: linear-gradient(90deg, var(--warn) 0%, var(--warn) 35%, rgba(255,255,255,0.65) 50%, var(--warn) 65%, var(--warn) 100%);
+    background-size: 200% 100%;
+    animation: shimmerMove 2s linear infinite;
+  }
+  .budget-item .progress-fill.danger {
+    background: linear-gradient(90deg, var(--expense) 0%, var(--expense) 35%, rgba(255,255,255,0.65) 50%, var(--expense) 65%, var(--expense) 100%);
+    background-size: 200% 100%;
+    animation: shimmerMove 2s linear infinite;
+  }
+  .budget-total .progress-fill.warn {
+    background: linear-gradient(90deg, #fbbf24 0%, #fbbf24 35%, rgba(255,255,255,0.75) 50%, #fbbf24 65%, #fbbf24 100%);
+    background-size: 200% 100%;
+    animation: shimmerMove 2s linear infinite;
+  }
+  .budget-total .progress-fill.danger {
+    background: linear-gradient(90deg, #fca5a5 0%, #fca5a5 35%, rgba(255,255,255,0.75) 50%, #fca5a5 65%, #fca5a5 100%);
+    background-size: 200% 100%;
+    animation: shimmerMove 2s linear infinite;
+  }
+
+  /* ========== THEME TRANSITION ========== */
+  .theme-transitioning,
+  .theme-transitioning *,
+  .theme-transitioning *::before,
+  .theme-transitioning *::after {
+    transition: background-color 0.35s ease, color 0.35s ease, border-color 0.35s ease, box-shadow 0.35s ease !important;
+  }
 
   section { display: none; }
   section.active { display: block; }
@@ -251,7 +349,6 @@
     border-bottom: 1px solid var(--border); cursor: pointer;
   }
   .cat-picker-item:last-child { border-bottom: none; }
-  .cat-picker-item:active { background: var(--input-bg); }
   
   .cat-picker-icon {
     width: 36px; height: 36px; border-radius: 10px; flex-shrink: 0;
@@ -261,10 +358,12 @@
   .categories { display: flex; flex-wrap: wrap; gap: 6px; margin-bottom: 12px; max-height: 260px; overflow-y: auto; }
   .chip {
     padding: 8px 12px; border: none; background: var(--input-bg); border-radius: 20px; font-size: 13px; cursor: pointer; color: var(--text-muted); transition: all 0.2s; font-family: inherit; display: flex; align-items: center; gap: 6px;
+    position: relative; overflow: hidden;
   }
   .chip.active { font-weight: 600; }
-  .chip i { font-size: 18px; display: flex; align-items: center; justify-content: center;}
-  .chip img { width: 18px; height: 18px; object-fit: contain; display: block; }
+  .chip i { font-size: 18px; display: flex; align-items: center; justify-content: center; position: relative; z-index: 1;}
+  .chip img { width: 18px; height: 18px; object-fit: contain; display: block; position: relative; z-index: 1;}
+  .chip > * { position: relative; z-index: 1; }
   .chip.toggle-chip {
     background: var(--primary-light);
     color: var(--primary);
@@ -277,7 +376,8 @@
   .chip.toggle-chip i { font-size: 14px; }
   
   .submit-btn {
-    width: 100%; padding: 14px; background: linear-gradient(135deg, var(--primary), var(--primary-dark)); color: white; border: none; border-radius: 12px; font-size: 15px; font-weight: 600; cursor: pointer; transition: opacity 0.2s; font-family: inherit;
+    width: 100%; padding: 14px; background: linear-gradient(135deg, var(--primary), var(--primary-dark)); color: white; border: none; border-radius: 12px; font-size: 15px; font-weight: 600; cursor: pointer; transition: opacity 0.2s, transform 0.12s; font-family: inherit;
+    position: relative; overflow: hidden;
   }
   .submit-btn:hover { opacity: 0.9; }
   
@@ -292,23 +392,26 @@
     display: flex; align-items: center; gap: 12px; padding: 12px; border-bottom: 1px solid var(--border); cursor: pointer;
     background: var(--card); transition: transform 0.2s, background 0.2s; position: relative;
     touch-action: pan-y;
+    overflow: hidden;
   }
   .item:last-child { border-bottom: none; }
   .item:hover { background: var(--input-bg); }
   .item .cat-icon {
     width: 42px; height: 42px; display: flex; align-items: center; justify-content: center; border-radius: 12px; flex-shrink: 0; font-size: 22px;
+    position: relative; z-index: 1;
   }
   .item .cat-icon img { width: 26px; height: 26px; object-fit: contain; display: block; margin: auto; }
-  .item .info { flex: 1; min-width: 0; }
+  .item .info { flex: 1; min-width: 0; position: relative; z-index: 1;}
   .item .info .desc { font-weight: 500; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
   .item .info .meta { font-size: 12px; color: var(--text-muted); margin-top: 2px; }
-  .item .amount { font-weight: 600; font-size: 15px; white-space: nowrap; }
+  .item .amount { font-weight: 600; font-size: 15px; white-space: nowrap; position: relative; z-index: 1;}
   .item .amount.income { color: var(--income); }
   .item .amount.expense, .item .amount.debt { color: var(--expense); }
   .item .amount.saving { color: var(--saving); }
   .item .amount.transfer { color: var(--text-muted); }
   .item .del-btn {
     background: none; border: none; color: var(--text-muted); font-size: 18px; cursor: pointer; padding: 4px 8px; border-radius: 6px;
+    position: relative; z-index: 2;
   }
   .item .del-btn:hover { color: var(--expense); background: var(--expense-bg); }
   .empty { text-align: center; padding: 40px 20px; color: var(--text-muted); font-size: 14px; }
@@ -348,20 +451,20 @@
   .budget-total .value { font-size: 22px; font-weight: bold; margin: 6px 0 10px; }
   .budget-total .progress-bar { background: rgba(255,255,255,0.2); height: 8px; border-radius: 4px; overflow: hidden; }
   .budget-total .progress-fill { height: 100%; background: white; border-radius: 4px; transition: width 0.3s; }
-  .budget-total .progress-fill.warn { background: #fbbf24; }
-  .budget-total .progress-fill.danger { background: #fca5a5; }
   .budget-total .pct { text-align: right; font-size: 12px; margin-top: 6px; opacity: 0.9; }
   
   .budget-item {
     display: flex; align-items: center; gap: 12px; padding: 14px; border-bottom: 1px solid var(--border); cursor: pointer;
+    position: relative; overflow: hidden;
   }
   .budget-item:last-child { border-bottom: none; }
   .budget-item:hover { background: var(--input-bg); }
   .budget-item .cat-icon {
     width: 42px; height: 42px; display: flex; align-items: center; justify-content: center; border-radius: 12px; flex-shrink: 0; font-size: 22px;
+    position: relative; z-index: 1;
   }
   .budget-item .cat-icon img { width: 26px; height: 26px; object-fit: contain; display: block; margin: auto; }
-  .budget-item .budget-body { flex: 1; min-width: 0; }
+  .budget-item .budget-body { flex: 1; min-width: 0; position: relative; z-index: 1;}
   .budget-item .budget-head { display: flex; justify-content: space-between; align-items: baseline; }
   .budget-item .budget-name { font-weight: 500; font-size: 15px; }
   .budget-item .budget-nums { font-size: 13px; white-space: nowrap; margin-left: 8px; }
@@ -389,15 +492,15 @@
     width: 100%; padding: 18px 16px; background: none; border: none; 
     color: var(--text); font-size: 17px; font-weight: 600; cursor: pointer; font-family: inherit;
     border-bottom: 1px solid var(--border);
+    position: relative; overflow: hidden;
   }
   .data-menu-btn:last-child { border-bottom: none; }
-  .data-menu-btn:hover { background: var(--input-bg); }
   
   .settings-btn {
     display: flex; align-items: center; gap: 12px; width: 100%; padding: 14px 16px; background: none; border: none; border-bottom: 1px solid var(--border); color: var(--text); font-size: 15px; cursor: pointer; text-align: left; font-family: inherit;
+    position: relative; overflow: hidden;
   }
   .settings-btn:last-child { border-bottom: none; }
-  .settings-btn:hover { background: var(--input-bg); }
   .settings-btn.danger { color: var(--expense); }
 
   .switch {
@@ -476,12 +579,6 @@
   }
   
   .strategy-desc { font-size: 13px; color: var(--text-muted); line-height: 1.4; margin-bottom: 8px; }
-  .strategy-example {
-    background: var(--input-bg); padding: 10px 12px; border-radius: 8px;
-    font-size: 12px; color: var(--text-muted); border-left: 3px solid var(--primary);
-    margin-bottom: 12px;
-  }
-  
   .mini-calc {
     background: var(--card); border: 1px solid var(--border); border-radius: 12px;
     padding: 12px; margin-top: 10px;
@@ -494,6 +591,7 @@
     background: var(--primary-light); color: var(--primary);
     border: 1px solid var(--primary); border-radius: 10px;
     font-weight: 600; cursor: pointer; transition: all 0.2s;
+    position: relative; overflow: hidden;
   }
   .follow-btn:hover { background: var(--primary); color: white; }
 
@@ -551,7 +649,6 @@
     width: 180px; height: 180px; margin: 0 auto 16px;
     border-radius: 50%; display: flex; align-items: center; justify-content: center;
     position: relative; background: var(--input-bg);
-    transition: background 0.3s;
   }
   .health-ring-inner {
     width: 140px; height: 140px; border-radius: 50%;
@@ -573,6 +670,46 @@
   .health-row .hr-title { font-size: 14px; font-weight: 600; margin-bottom: 4px; }
   .health-row .hr-sub { font-size: 12px; color: var(--text-muted); line-height: 1.4; }
   .health-row .hr-score { font-size: 14px; font-weight: 700; flex-shrink: 0; }
+
+  /* QUICK CATS SETUP */
+  .quick-cat-row {
+    display: flex; align-items: center; gap: 12px;
+    padding: 12px; border-bottom: 1px solid var(--border);
+    cursor: pointer;
+    position: relative; overflow: hidden;
+  }
+  .quick-cat-row:last-child { border-bottom: none; }
+  .quick-cat-row.selected { background: var(--primary-light); }
+  .quick-cat-row .qc-icon {
+    width: 36px; height: 36px; border-radius: 10px;
+    display: flex; align-items: center; justify-content: center;
+    flex-shrink: 0;
+    position: relative; z-index: 1;
+  }
+  .quick-cat-row .qc-name {
+    flex: 1;
+    font-size: 15px;
+    position: relative; z-index: 1;
+  }
+  .quick-cat-row .qc-check {
+    width: 24px; height: 24px; border-radius: 50%;
+    border: 2px solid var(--border);
+    display: flex; align-items: center; justify-content: center;
+    color: transparent; font-size: 14px; font-weight: bold;
+    transition: all 0.2s;
+    flex-shrink: 0;
+    position: relative; z-index: 1;
+  }
+  .quick-cat-row.selected .qc-check {
+    background: var(--primary); color: white; border-color: var(--primary);
+  }
+  .qc-hint {
+    font-size: 12px; color: var(--text-muted); margin-bottom: 12px; line-height: 1.4;
+  }
+  .qc-counter {
+    font-size: 12px; color: var(--primary); font-weight: 600;
+    margin-left: auto;
+  }
 </style>
 </head>
 <body>
@@ -807,25 +944,32 @@
     </div>
 
     <div class="settings-group" style="padding: 0;">
-      <button class="data-menu-btn" onclick="openSubScreen('data-management')">
+      <button class="data-menu-btn ripple-host" onclick="openSubScreen('data-management')">
         <span>Работа с данными</span>
         <i class="ph-bold ph-caret-right" style="color: var(--text-muted); font-size: 20px;"></i>
       </button>
-      <button class="data-menu-btn" onclick="openSubScreen('achievements')">
+      <button class="data-menu-btn ripple-host" onclick="openSubScreen('achievements')">
         <div style="display:flex; align-items:center; gap:12px;">
           <img src="gem_icon.png" style="width: 24px; height: 24px; object-fit: contain;">
           <span>Достижения</span>
         </div>
         <i class="ph-bold ph-caret-right" style="color: var(--text-muted); font-size: 20px;"></i>
       </button>
-      <button class="data-menu-btn" onclick="openSubScreen('savings-calculator')">
+      <button class="data-menu-btn ripple-host" onclick="openSubScreen('savings-calculator')">
         <div style="display:flex; align-items:center; gap:12px;">
           <i class="ph-fill ph-piggy-bank" style="color: #ec4899; font-size: 24px;"></i>
           <span>Стратегии накопления</span>
         </div>
         <i class="ph-bold ph-caret-right" style="color: var(--text-muted); font-size: 20px;"></i>
       </button>
-      <button class="data-menu-btn" onclick="openSubScreen('health-check')">
+      <button class="data-menu-btn ripple-host" onclick="openSubScreen('quick-categories')">
+        <div style="display:flex; align-items:center; gap:12px;">
+          <i class="ph-fill ph-lightning" style="color: #f59e0b; font-size: 24px;"></i>
+          <span>Настройка частых категорий</span>
+        </div>
+        <i class="ph-bold ph-caret-right" style="color: var(--text-muted); font-size: 20px;"></i>
+      </button>
+      <button class="data-menu-btn ripple-host" onclick="openSubScreen('health-check')">
         <div style="display:flex; align-items:center; gap:12px;">
           <i class="ph-fill ph-heartbeat" style="color: #ef4444; font-size: 24px;"></i>
           <span>Финансовый health-check</span>
@@ -835,17 +979,17 @@
     </div>
     
     <p style="text-align:center; color: var(--text-muted); font-size: 12px; margin-top: 20px; margin-bottom: 20px;">
-      Мои финансы v7.2 · Данные хранятся на вашем устройстве
+      Мои финансы v7.3 · Данные хранятся на вашем устройстве
     </p>
   </section>
 
   <section id="data-management" class="sub-screen">
     <div class="settings-group" style="margin-top: 16px;">
-      <button class="settings-btn" id="exportBtn">📤 Экспорт данных (JSON)</button>
-      <button class="settings-btn" id="exportCsvBtn">📊 Экспорт в CSV (для Excel)</button>
-      <button class="settings-btn" id="importBtn">📥 Импорт данных</button>
+      <button class="settings-btn ripple-host" id="exportBtn">📤 Экспорт данных (JSON)</button>
+      <button class="settings-btn ripple-host" id="exportCsvBtn">📊 Экспорт в CSV (для Excel)</button>
+      <button class="settings-btn ripple-host" id="importBtn">📥 Импорт данных</button>
       <input type="file" id="importFile" accept=".json,application/json" hidden>
-      <button class="settings-btn danger" id="clearBtn">🗑 Удалить все данные</button>
+      <button class="settings-btn danger ripple-host" id="clearBtn">🗑 Удалить все данные</button>
     </div>
   </section>
 
@@ -1017,9 +1161,41 @@
       <div class="health-breakdown" id="healthBreakdown"></div>
     </div>
   </section>
+
+  <section id="quick-categories" class="sub-screen">
+    <div class="card" style="margin-top: 16px; padding: 0;">
+      <div style="padding: 16px; border-bottom: 1px solid var(--border);">
+        <div style="display: flex; align-items: center; margin-bottom: 4px;">
+          <h3 style="font-size: 16px; margin: 0;">Расходы</h3>
+          <span class="qc-counter" id="qcExpenseCounter">0/5</span>
+        </div>
+        <p class="qc-hint">Отметьте до 5 категорий — они появятся первыми на экране «Опер.» при добавлении расхода.</p>
+      </div>
+      <div id="quickExpenseList"></div>
+    </div>
+
+    <div class="card" style="padding: 0;">
+      <div style="padding: 16px; border-bottom: 1px solid var(--border);">
+        <div style="display: flex; align-items: center; margin-bottom: 4px;">
+          <h3 style="font-size: 16px; margin: 0;">Доходы</h3>
+          <span class="qc-counter" id="qcIncomeCounter">0/5</span>
+        </div>
+        <p class="qc-hint">Аналогично для доходов.</p>
+      </div>
+      <div id="quickIncomeList"></div>
+    </div>
+
+    <div class="card">
+      <button class="submit-btn" id="resetQuickCatsBtn" style="background: var(--input-bg); color: var(--primary); border: 1px dashed var(--primary);">🔄 Сбросить к авторасчёту</button>
+      <p style="font-size: 12px; color: var(--text-muted); margin-top: 12px; text-align: center; line-height: 1.4;">
+        Если ничего не выбрано — приложение автоматически покажет 5 самых частых категорий.
+      </p>
+    </div>
+  </section>
 </main>
 
 <nav class="tabs">
+  <div class="tab-indicator" id="tabIndicator"></div>
   <button data-tab="transactions" class="active">
     <span class="icon"><svg viewBox="0 0 24 24"><path d="M21 2v6h-6"></path><path d="M3 12a9 9 0 0 1 15-6.7L21 8"></path><path d="M3 22v-6h6"></path><path d="M21 12a9 9 0 0 1-15 6.7L3 16"></path></svg></span>
     <span class="text">Опер.</span>
@@ -1120,6 +1296,8 @@
   const THEME_KEY = 'finance_theme';
   const SHOWN_MILESTONES_KEY = 'shown_milestones';
   const SAFE_MANUAL_KEY = 'safe_manual';
+  const QUICK_CATS_EXPENSE_KEY = 'quick_cats_expense';
+  const QUICK_CATS_INCOME_KEY = 'quick_cats_income';
 
   const EXPENSE_CATS = [
     { name: 'Еда', img: 'burger.png', color: '#f59e0b', bg: 'rgba(245,158,11,0.15)' },
@@ -1184,6 +1362,11 @@
 
   const safeManualRaw = localStorage.getItem(SAFE_MANUAL_KEY);
 
+  let quickExpenseRaw = [];
+  let quickIncomeRaw = [];
+  try { quickExpenseRaw = JSON.parse(localStorage.getItem(QUICK_CATS_EXPENSE_KEY) || '[]'); } catch(e) {}
+  try { quickIncomeRaw = JSON.parse(localStorage.getItem(QUICK_CATS_INCOME_KEY) || '[]'); } catch(e) {}
+
   const state = {
     transactions: JSON.parse(localStorage.getItem(STORAGE_KEY) || '[]'),
     budgets: JSON.parse(localStorage.getItem(BUDGETS_KEY) || '{}'),
@@ -1191,6 +1374,10 @@
     activeStrategy: JSON.parse(localStorage.getItem(ACTIVE_STRATEGY_KEY) || 'null'),
     shownMilestones: JSON.parse(localStorage.getItem(SHOWN_MILESTONES_KEY) || '[]'),
     safeManual: (safeManualRaw === null || safeManualRaw === '') ? null : (isNaN(parseFloat(safeManualRaw)) ? null : parseFloat(safeManualRaw)),
+    quickCats: {
+      expense: Array.isArray(quickExpenseRaw) ? quickExpenseRaw : [],
+      income: Array.isArray(quickIncomeRaw) ? quickIncomeRaw : []
+    },
     
     selectedType: 'expense',
     selectedCurrency: 'RUB',
@@ -1217,11 +1404,119 @@
   let modalCapId = null;
   let currentSubScreen = null;
   let suppressClick = false;
+  let themeTransitionTimeout = null;
 
   const $ = id => document.getElementById(id);
   const fmt = (n, curr = 'RUB') => n.toLocaleString('ru-RU', { maximumFractionDigits: 2 }) + (curr === 'USD' ? ' $' : ' ₽');
+  const fmtInt = (n, curr = 'RUB') => Math.round(n).toLocaleString('ru-RU') + (curr === 'USD' ? ' $' : ' ₽');
   const isDark = () => document.documentElement.dataset.theme === 'dark';
 
+  // ============ ANIMATED COUNTERS ============
+  const animatedValues = new WeakMap();
+  function animateValue(el, target, formatter, duration = 550) {
+    if (!el) return;
+    if (typeof target !== 'number' || !isFinite(target)) {
+      el.textContent = formatter(target);
+      animatedValues.set(el, target);
+      return;
+    }
+    const prev = animatedValues.get(el);
+    if (prev === undefined) {
+      animatedValues.set(el, target);
+      el.textContent = formatter(target);
+      return;
+    }
+    if (Math.abs(prev - target) < 0.01) {
+      animatedValues.set(el, target);
+      el.textContent = formatter(target);
+      return;
+    }
+    animatedValues.set(el, target);
+    if (el._animFrame) cancelAnimationFrame(el._animFrame);
+    const start = performance.now();
+    const from = prev;
+    const diff = target - from;
+    function tick(now) {
+      const t = Math.min((now - start) / duration, 1);
+      const eased = 1 - Math.pow(1 - t, 3);
+      el.textContent = formatter(from + diff * eased);
+      if (t < 1) el._animFrame = requestAnimationFrame(tick);
+      else el._animFrame = null;
+    }
+    el._animFrame = requestAnimationFrame(tick);
+  }
+
+  // ============ TAB INDICATOR ============
+  function moveTabIndicator(animate = true) {
+    const activeBtn = document.querySelector('.tabs button.active');
+    const indicator = $('tabIndicator');
+    if (!activeBtn || !indicator) return;
+    if (!animate) indicator.classList.add('no-transition');
+    const nav = activeBtn.parentElement;
+    const navRect = nav.getBoundingClientRect();
+    const btnRect = activeBtn.getBoundingClientRect();
+    const padH = 4;
+    const x = btnRect.left - navRect.left + padH;
+    indicator.style.transform = `translateX(${x}px)`;
+    indicator.style.width = (btnRect.width - padH * 2) + 'px';
+    if (!animate) {
+      requestAnimationFrame(() => requestAnimationFrame(() => {
+        indicator.classList.remove('no-transition');
+      }));
+    }
+  }
+
+  // ============ RIPPLE ============
+  function createRipple(host, clientX, clientY) {
+    if (!host) return;
+    const existing = host.querySelector('.ripple');
+    if (existing) existing.remove();
+    const rect = host.getBoundingClientRect();
+    const size = Math.max(rect.width, rect.height) * 1.2;
+    let x, y;
+    if (typeof clientX === 'number' && typeof clientY === 'number' && !isNaN(clientX) && !isNaN(clientY)) {
+      x = clientX - rect.left - size / 2;
+      y = clientY - rect.top - size / 2;
+    } else {
+      x = rect.width / 2 - size / 2;
+      y = rect.height / 2 - size / 2;
+    }
+    const ripple = document.createElement('span');
+    ripple.className = 'ripple';
+    ripple.style.width = ripple.style.height = size + 'px';
+    ripple.style.left = x + 'px';
+    ripple.style.top = y + 'px';
+    host.appendChild(ripple);
+    setTimeout(() => ripple.remove(), 620);
+  }
+
+  document.addEventListener('click', (e) => {
+    const host = e.target.closest('.ripple-host');
+    if (!host) return;
+    createRipple(host, e.clientX, e.clientY);
+  }, true);
+
+  // ============ HEALTH RING ANIMATION ============
+  let healthRingFrame = null;
+  function animateHealthRing(target, color) {
+    const ring = $('healthRing');
+    if (!ring) return;
+    if (healthRingFrame) cancelAnimationFrame(healthRingFrame);
+    const maxDeg = Math.min(360, Math.max(0, target * 3.6));
+    const start = performance.now();
+    const duration = 1100;
+    function tick(now) {
+      const t = Math.min((now - start) / duration, 1);
+      const eased = 1 - Math.pow(1 - t, 3);
+      const deg = maxDeg * eased;
+      ring.style.background = `conic-gradient(${color} ${deg}deg, var(--input-bg) 0deg)`;
+      if (t < 1) healthRingFrame = requestAnimationFrame(tick);
+      else healthRingFrame = null;
+    }
+    healthRingFrame = requestAnimationFrame(tick);
+  }
+
+  // ============ SAVE HELPERS ============
   function getMonthKey(date = new Date()) {
     return `${date.getFullYear()}-${String(date.getMonth() + 1).padStart(2, '0')}`;
   }
@@ -1271,6 +1566,10 @@
   function saveCapital() { localStorage.setItem(CAPITAL_KEY, JSON.stringify(state.capital)); }
   function saveActiveStrategy() { localStorage.setItem(ACTIVE_STRATEGY_KEY, JSON.stringify(state.activeStrategy)); }
   function saveShownMilestones() { localStorage.setItem(SHOWN_MILESTONES_KEY, JSON.stringify(state.shownMilestones)); }
+  function saveQuickCats() {
+    localStorage.setItem(QUICK_CATS_EXPENSE_KEY, JSON.stringify(state.quickCats.expense));
+    localStorage.setItem(QUICK_CATS_INCOME_KEY, JSON.stringify(state.quickCats.income));
+  }
 
   function showToast(msg) {
     const t = $('toast'); t.textContent = msg; t.classList.add('show');
@@ -1489,12 +1788,12 @@
         if (t.type === 'income') usdInc += t.amount; else usdExp += t.amount;
       }
     });
-    $('balanceRUB').textContent = fmt(rubInc - rubExp, 'RUB');
-    $('balanceUSD').textContent = fmt(usdInc - usdExp, 'USD');
-    $('totalIncomeRUB').textContent = fmt(rubInc, 'RUB');
-    $('totalExpenseRUB').textContent = fmt(rubExp, 'RUB');
-    $('totalIncomeUSD').textContent = fmt(usdInc, 'USD');
-    $('totalExpenseUSD').textContent = fmt(usdExp, 'USD');
+    animateValue($('balanceRUB'), rubInc - rubExp, v => fmt(v, 'RUB'));
+    animateValue($('balanceUSD'), usdInc - usdExp, v => fmt(v, 'USD'));
+    animateValue($('totalIncomeRUB'), rubInc, v => fmt(v, 'RUB'));
+    animateValue($('totalExpenseRUB'), rubExp, v => fmt(v, 'RUB'));
+    animateValue($('totalIncomeUSD'), usdInc, v => fmt(v, 'USD'));
+    animateValue($('totalExpenseUSD'), usdExp, v => fmt(v, 'USD'));
     checkReminder();
   }
 
@@ -1532,8 +1831,11 @@
       badge.style.display = 'inline-block';
     } else {
       if (totalLimit === 0) {
-        $('safeValue').textContent = '— ₽';
-        $('safeSub').textContent = 'Задайте бюджет или ручной лимит (✏️)';
+        const sv = $('safeValue');
+        const prev = animatedValues.get(sv);
+        if (prev !== undefined && prev !== 0) animateValue(sv, 0, () => '— ₽', 300);
+        else { sv.textContent = '— ₽'; animatedValues.set(sv, 0); }
+        $('safeSub').textContent = 'Задайте бюджет или ручной лимит';
         $('safeFill').style.width = '0%';
         $('safeToday').textContent = '';
         badge.style.display = 'none';
@@ -1545,7 +1847,7 @@
     
     const pct = perDay > 0 ? Math.min(spentToday / perDay * 100, 100) : (spentToday > 0 ? 100 : 0);
     
-    $('safeValue').textContent = fmt(perDay, 'RUB');
+    animateValue($('safeValue'), perDay, v => fmt(Math.max(0, v), 'RUB'));
     
     if (isManual) {
       if (totalLimit > 0) {
@@ -1602,13 +1904,31 @@
   function makeCatChip(c, isQuick) {
     const btn = document.createElement('button');
     btn.type = 'button';
-    btn.className = 'chip' + (c.name === state.selectedCategory ? ' active' : '') + (isQuick ? ' quick' : '');
+    btn.className = 'chip ripple-host' + (c.name === state.selectedCategory ? ' active' : '');
+    btn.dataset.catName = c.name;
     if (c.name === state.selectedCategory) {
       btn.style.backgroundColor = c.bg;
       btn.style.color = c.color;
     }
-    btn.innerHTML = `${getIconHtml(c, 18)} ${c.name}`;
-    btn.onclick = () => { state.selectedCategory = c.name; renderCategories(); };
+    btn.innerHTML = `${getIconHtml(c, 18)} <span>${c.name}</span>`;
+    btn.onclick = () => {
+      state.selectedCategory = c.name;
+      // Обновляем active-классы без пересоздания DOM, чтобы ripple успел отыграть
+      document.querySelectorAll('#categories .chip').forEach(ch => {
+        const name = ch.dataset.catName;
+        if (!name) return;
+        const isActive = name === c.name;
+        ch.classList.toggle('active', isActive);
+        if (isActive) {
+          const data = getCatData(name, state.selectedType);
+          ch.style.backgroundColor = data.bg;
+          ch.style.color = data.color;
+        } else {
+          ch.style.backgroundColor = '';
+          ch.style.color = '';
+        }
+      });
+    };
     return btn;
   }
 
@@ -1623,16 +1943,33 @@
     });
     
     const indexed = cats.map((c, i) => ({ ...c, origIdx: i, f: freq[c.name] || 0 }));
-    const sortedByFreq = [...indexed].sort((a, b) => {
-      if (b.f !== a.f) return b.f - a.f;
-      return a.origIdx - b.origIdx;
-    });
     
-    let quick = sortedByFreq.slice(0, 5);
-    
-    if (!quick.find(c => c.name === state.selectedCategory)) {
-      const selected = indexed.find(c => c.name === state.selectedCategory);
-      if (selected) quick[quick.length - 1] = selected;
+    let quick;
+    const custom = state.quickCats[state.selectedType] || [];
+    if (custom.length > 0) {
+      // Пользователь настроил вручную
+      quick = custom
+        .map(n => indexed.find(c => c.name === n))
+        .filter(Boolean);
+      // Если выбранная категория не в quick — добавим её в конец (но не больше 5)
+      if (!quick.find(c => c.name === state.selectedCategory)) {
+        const selected = indexed.find(c => c.name === state.selectedCategory);
+        if (selected) {
+          if (quick.length >= 5) quick[quick.length - 1] = selected;
+          else quick.push(selected);
+        }
+      }
+    } else {
+      // Авторасчёт по частоте
+      const sortedByFreq = [...indexed].sort((a, b) => {
+        if (b.f !== a.f) return b.f - a.f;
+        return a.origIdx - b.origIdx;
+      });
+      quick = sortedByFreq.slice(0, 5);
+      if (!quick.find(c => c.name === state.selectedCategory)) {
+        const selected = indexed.find(c => c.name === state.selectedCategory);
+        if (selected) quick[quick.length - 1] = selected;
+      }
     }
     
     const quickNames = new Set(quick.map(c => c.name));
@@ -1649,10 +1986,10 @@
     
     const toggleBtn = document.createElement('button');
     toggleBtn.type = 'button';
-    toggleBtn.className = 'chip toggle-chip';
+    toggleBtn.className = 'chip toggle-chip ripple-host';
     toggleBtn.innerHTML = state.categoriesExpanded
-      ? `<i class="ph-bold ph-caret-up"></i> Скрыть`
-      : `<i class="ph-bold ph-caret-down"></i> Ещё ${rest.length}`;
+      ? `<i class="ph-bold ph-caret-up"></i> <span>Скрыть</span>`
+      : `<i class="ph-bold ph-caret-down"></i> <span>Ещё ${rest.length}</span>`;
     toggleBtn.onclick = () => {
       state.categoriesExpanded = !state.categoriesExpanded;
       renderCategories();
@@ -1675,7 +2012,7 @@
       const curr = t.currency || 'RUB';
       const catData = getCatData(t.category, t.type);
       const div = document.createElement('div');
-      div.className = 'item';
+      div.className = 'item ripple-host';
       div.dataset.id = t.id;
       
       if (t.type === 'transfer') {
@@ -1765,11 +2102,11 @@
     cats.forEach(c => {
       const btn = document.createElement('button');
       btn.type = 'button';
-      btn.className = 'chip' + (c.name === state.capCategory ? ' active' : '');
+      btn.className = 'chip ripple-host' + (c.name === state.capCategory ? ' active' : '');
       if (c.name === state.capCategory) {
         btn.style.backgroundColor = c.bg; btn.style.color = c.color;
       }
-      btn.innerHTML = `${getIconHtml(c, 18)} ${c.name}`;
+      btn.innerHTML = `${getIconHtml(c, 18)} <span>${c.name}</span>`;
       btn.onclick = () => { state.capCategory = c.name; renderCapCategories(); };
       container.appendChild(btn);
     });
@@ -1790,13 +2127,24 @@
         if (c.currency === 'RUB') debtRUB += c.amount; else debtUSD += c.amount;
       }
     });
-    $('topSavingsRUB').textContent = fmt(savRUB, 'RUB');
-    $('topSavingsUSD').textContent = fmt(savUSD, 'USD');
-    $('topDebtsRUB').textContent = fmt(debtRUB, 'RUB');
-    $('topDebtsUSD').textContent = fmt(debtUSD, 'USD');
+    animateValue($('topSavingsRUB'), savRUB, v => fmt(v, 'RUB'));
+    animateValue($('topSavingsUSD'), savUSD, v => fmt(v, 'USD'));
+    animateValue($('topDebtsRUB'), debtRUB, v => fmt(v, 'RUB'));
+    animateValue($('topDebtsUSD'), debtUSD, v => fmt(v, 'USD'));
+    
+    const netEl = $('topNetWorth');
     const netRUB = savRUB - debtRUB;
     const netUSD = savUSD - debtUSD;
-    $('topNetWorth').textContent = `${fmt(netRUB, 'RUB')} / ${fmt(netUSD, 'USD')}`;
+    // Анимируем через установку составной строки
+    const prevNet = animatedValues.get(netEl);
+    if (prevNet === undefined) {
+      netEl.textContent = `${fmt(netRUB, 'RUB')} / ${fmt(netUSD, 'USD')}`;
+      animatedValues.set(netEl, { rub: netRUB, usd: netUSD });
+    } else {
+      // Простое обновление (без сложной анимации составных значений)
+      netEl.textContent = `${fmt(netRUB, 'RUB')} / ${fmt(netUSD, 'USD')}`;
+      animatedValues.set(netEl, { rub: netRUB, usd: netUSD });
+    }
 
     const sDetails = $('savingsDetails');
     sDetails.innerHTML = '';
@@ -1923,7 +2271,9 @@
       $('budgetTotalBarWrap').hidden = true;
       $('budgetTotalPct').textContent = '';
     } else {
-      $('budgetTotalValue').textContent = `${fmt(totalSpent, 'RUB')} / ${fmt(totalLimit, 'RUB')}`;
+      const valEl = $('budgetTotalValue');
+      // Составная строка — анимируем не как число, а просто обновляем
+      valEl.textContent = `${fmt(totalSpent, 'RUB')} / ${fmt(totalLimit, 'RUB')}`;
       $('budgetTotalBarWrap').hidden = false;
       const pct = Math.min((totalSpent / totalLimit) * 100, 100);
       $('budgetTotalBar').style.width = pct + '%';
@@ -1946,7 +2296,7 @@
         let cls = pct > 100 ? 'danger' : pct >= 80 ? 'warn' : '';
         const catData = getCatData(cat, 'expense');
         const div = document.createElement('div');
-        div.className = 'budget-item';
+        div.className = 'budget-item ripple-host';
         div.innerHTML = `
           <div class="cat-icon" style="background: ${catData.bg}; color: ${catData.color};">
             ${getIconHtml(catData, 26)}
@@ -1975,7 +2325,7 @@
     list.innerHTML = '';
     EXPENSE_CATS.forEach(c => {
       const div = document.createElement('div');
-      div.className = 'cat-picker-item';
+      div.className = 'cat-picker-item ripple-host';
       div.innerHTML = `
         <div class="cat-picker-icon" style="background: ${c.bg};">
           ${getIconHtml(c, 22)}
@@ -2426,8 +2776,16 @@
     if (name === 'budgets') { renderBudgets(); renderSafeToSpend(); }
     if (name === 'capital') renderCapital();
     if (name === 'transactions') checkReminder();
+    
+    // Двигаем индикатор вкладок
+    setTimeout(() => moveTabIndicator(true), 0);
   }
-  function setupTabs() { document.querySelectorAll('.tabs button').forEach(btn => btn.onclick = () => switchTab(btn.dataset.tab)); }
+  
+  function setupTabs() { 
+    document.querySelectorAll('.tabs button').forEach(btn => {
+      btn.onclick = () => switchTab(btn.dataset.tab);
+    });
+  }
 
   window.openSubScreen = function(screenId) {
     currentSubScreen = screenId;
@@ -2442,6 +2800,7 @@
     if (screenId === 'achievements') { $('headerTitle').textContent = 'Достижения'; renderAchievements(); }
     if (screenId === 'savings-calculator') { $('headerTitle').textContent = 'Стратегии'; calculateSavings(); renderActiveStrategy(); }
     if (screenId === 'health-check') { $('headerTitle').textContent = 'Health-check'; renderHealthCheck(); }
+    if (screenId === 'quick-categories') { $('headerTitle').textContent = 'Частые категории'; renderQuickCatsScreen(); }
   };
 
   window.closeSubScreen = function() {
@@ -2615,7 +2974,7 @@
     });
     const pct = Math.min((totalSaved / s.target) * 100, 100);
     $('as-name').innerText = s.name;
-    $('as-current').innerText = fmt(totalSaved);
+    animateValue($('as-current'), totalSaved, v => fmt(v, 'RUB'));
     $('as-target').innerText = fmt(s.target);
     $('as-progress').style.width = pct + '%';
     $('as-pct').innerText = Math.round(pct) + '%';
@@ -2686,8 +3045,9 @@
     
     const color = total >= 80 ? '#10b981' : total >= 50 ? '#f59e0b' : '#ef4444';
     
-    $('healthRing').style.background = `conic-gradient(${color} ${total * 3.6}deg, var(--input-bg) 0deg)`;
-    $('healthScore').textContent = total;
+    // Анимируем кольцо и число
+    animateHealthRing(total, color);
+    animateValue($('healthScore'), total, v => Math.round(v).toString(), 1100);
     $('healthScore').style.color = color;
     
     const statusEl = $('healthStatus');
@@ -2739,6 +3099,63 @@
         <span class="hr-score" style="color:${regularityScore >= 10 ? 'var(--income)' : regularityScore >= 5 ? 'var(--warn)' : 'var(--expense)'}">${Math.round(regularityScore)}/15</span>
       </div>
     `;
+  }
+
+  // ============ QUICK CATS SCREEN ============
+  function renderQuickCatsScreen() {
+    renderQuickCatsList('expense');
+    renderQuickCatsList('income');
+  }
+
+  function renderQuickCatsList(type) {
+    const listEl = type === 'expense' ? $('quickExpenseList') : $('quickIncomeList');
+    const counterEl = type === 'expense' ? $('qcExpenseCounter') : $('qcIncomeCounter');
+    const cats = type === 'expense' ? EXPENSE_CATS : INCOME_CATS;
+    const selected = state.quickCats[type] || [];
+    
+    if (counterEl) counterEl.textContent = `${selected.length}/5`;
+    
+    listEl.innerHTML = '';
+    cats.forEach(c => {
+      const isSelected = selected.includes(c.name);
+      const div = document.createElement('div');
+      div.className = 'quick-cat-row ripple-host' + (isSelected ? ' selected' : '');
+      div.innerHTML = `
+        <div class="qc-icon" style="background: ${c.bg}; color: ${c.color};">
+          ${getIconHtml(c, 20)}
+        </div>
+        <div class="qc-name">${escapeHtml(c.name)}</div>
+        <div class="qc-check">✓</div>
+      `;
+      div.onclick = () => {
+        const list = state.quickCats[type];
+        const idx = list.indexOf(c.name);
+        if (idx >= 0) {
+          list.splice(idx, 1);
+        } else {
+          if (list.length >= 5) {
+            showToast('Максимум 5 категорий');
+            return;
+          }
+          list.push(c.name);
+        }
+        saveQuickCats();
+        renderQuickCatsList(type);
+        if (state.selectedType === type) renderCategories();
+      };
+      listEl.appendChild(div);
+    });
+  }
+
+  function setupQuickCatsScreen() {
+    $('resetQuickCatsBtn').onclick = () => {
+      state.quickCats = { expense: [], income: [] };
+      saveQuickCats();
+      renderQuickCatsList('expense');
+      renderQuickCatsList('income');
+      renderCategories();
+      showToast('Сброшено к авторасчёту');
+    };
   }
 
   // ============ SWIPE ITEMS ============
@@ -2859,17 +3276,29 @@
     themeSwitch.checked = (savedTheme === 'dark');
     themeSwitch.onchange = () => {
       const next = themeSwitch.checked ? 'dark' : 'light';
+      // Плавная смена темы
+      document.documentElement.classList.add('theme-transitioning');
       document.documentElement.dataset.theme = next;
       localStorage.setItem(THEME_KEY, next);
+      clearTimeout(themeTransitionTimeout);
+      themeTransitionTimeout = setTimeout(() => {
+        document.documentElement.classList.remove('theme-transitioning');
+      }, 420);
       if ($('charts').classList.contains('active')) {
-        renderPieChart(); renderBarChart(); renderWeekdayChart(); renderWaterfall();
+        setTimeout(() => {
+          renderPieChart(); renderBarChart(); renderWeekdayChart(); renderWaterfall();
+        }, 100);
+      }
+      // Обновляем health ring при смене темы (если экран открыт)
+      if (currentSubScreen === 'health-check') {
+        setTimeout(renderHealthCheck, 100);
       }
     };
   }
 
   function setupSettings() {
     $('exportBtn').onclick = () => {
-      const data = { transactions: state.transactions, budgets: state.budgets, capital: state.capital, activeStrategy: state.activeStrategy, shownMilestones: state.shownMilestones };
+      const data = { transactions: state.transactions, budgets: state.budgets, capital: state.capital, activeStrategy: state.activeStrategy, shownMilestones: state.shownMilestones, quickCats: state.quickCats };
       const blob = new Blob([JSON.stringify(data, null, 2)], { type: 'application/json' });
       const url = URL.createObjectURL(blob);
       const a = document.createElement('a'); a.href = url; a.download = `finance-backup-${new Date().toISOString().slice(0, 10)}.json`;
@@ -2899,19 +3328,24 @@
       reader.onload = ev => {
         try {
           const raw = JSON.parse(ev.target.result);
-          let txns, budgets, capital, activeStrat, shownM;
-          if (Array.isArray(raw)) { txns = raw; budgets = state.budgets; capital = state.capital; activeStrat = state.activeStrategy; shownM = state.shownMilestones; }
+          let txns, budgets, capital, activeStrat, shownM, qcExp, qcInc;
+          if (Array.isArray(raw)) { txns = raw; budgets = state.budgets; capital = state.capital; activeStrat = state.activeStrategy; shownM = state.shownMilestones; qcExp = state.quickCats.expense; qcInc = state.quickCats.income; }
           else {
             txns = raw.transactions || [];
             budgets = raw.budgets || {};
             capital = raw.capital || [];
             activeStrat = raw.activeStrategy || null;
             shownM = Array.isArray(raw.shownMilestones) ? raw.shownMilestones : state.shownMilestones;
+            qcExp = raw.quickCats && Array.isArray(raw.quickCats.expense) ? raw.quickCats.expense : state.quickCats.expense;
+            qcInc = raw.quickCats && Array.isArray(raw.quickCats.income) ? raw.quickCats.income : state.quickCats.income;
           }
           if (!Array.isArray(txns)) throw new Error('Неверный формат');
           if (!confirm('Импортировать данные? Текущие данные будут заменены.')) return;
           state.transactions = txns; state.budgets = budgets; state.capital = capital; state.activeStrategy = activeStrat; state.shownMilestones = shownM;
-          save(); saveBudgets(); saveCapital(); saveActiveStrategy(); saveShownMilestones(); renderAll(); renderActiveStrategy(); showToast('Данные импортированы');
+          state.quickCats = { expense: qcExp, income: qcInc };
+          save(); saveBudgets(); saveCapital(); saveActiveStrategy(); saveShownMilestones(); saveQuickCats();
+          renderAll(); renderActiveStrategy(); renderCategories();
+          showToast('Данные импортированы');
         } catch (err) { alert('Ошибка импорта: ' + err.message); }
       };
       reader.readAsText(file); e.target.value = '';
@@ -2919,7 +3353,10 @@
     $('clearBtn').onclick = () => {
       if (confirm('Удалить ВСЕ данные (операции, бюджеты, капитал и стратегии)?')) {
         state.transactions = []; state.budgets = {}; state.capital = []; state.activeStrategy = null; state.shownMilestones = [];
-        save(); saveBudgets(); saveCapital(); saveActiveStrategy(); saveShownMilestones(); renderAll(); renderActiveStrategy(); showToast('Все данные удалены');
+        state.quickCats = { expense: [], income: [] };
+        save(); saveBudgets(); saveCapital(); saveActiveStrategy(); saveShownMilestones(); saveQuickCats();
+        renderAll(); renderActiveStrategy(); renderCategories();
+        showToast('Все данные удалены');
       }
     };
   }
@@ -2939,8 +3376,15 @@
 
   function init() {
     sanitizeBudgets();
-    setupTheme(); setupTabs(); setupForms(); setupBudgets(); setupFilters(); setupSettings(); setupPWA(); setupModal(); setupSwipeBack(); setupSwipeItems();
+    setupTheme(); setupTabs(); setupForms(); setupBudgets(); setupFilters(); setupSettings(); setupPWA(); setupModal(); setupSwipeBack(); setupSwipeItems(); setupQuickCatsScreen();
     renderCategories(); renderCapCategories(); renderAll(); renderActiveStrategy();
+    // Индикатор вкладок: после первого рендера
+    requestAnimationFrame(() => {
+      moveTabIndicator(false);
+    });
+    // Resize handler
+    window.addEventListener('resize', () => moveTabIndicator(false));
+    window.addEventListener('orientationchange', () => setTimeout(() => moveTabIndicator(false), 200));
   }
 
   if (document.readyState === 'loading') document.addEventListener('DOMContentLoaded', init);
