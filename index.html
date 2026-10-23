@@ -176,8 +176,8 @@
   .safe-edit-btn {
     position: absolute; top: 14px; right: 14px;
     background: rgba(255,255,255,0.22); border: none; color: white;
-    width: 32px; height: 32px; border-radius: 50%; cursor: pointer;
-    display: flex; align-items: center; justify-content: center; font-size: 14px;
+    width: 34px; height: 34px; border-radius: 50%; cursor: pointer;
+    display: flex; align-items: center; justify-content: center; font-size: 17px;
     transition: background 0.2s;
   }
   .safe-edit-btn:hover { background: rgba(255,255,255,0.4); }
@@ -265,9 +265,6 @@
   .chip.active { font-weight: 600; }
   .chip i { font-size: 18px; display: flex; align-items: center; justify-content: center;}
   .chip img { width: 18px; height: 18px; object-fit: contain; display: block; }
-  .chip.quick::before {
-    content: '🔥'; font-size: 11px; margin-right: 2px;
-  }
   .chip.toggle-chip {
     background: var(--primary-light);
     color: var(--primary);
@@ -618,7 +615,9 @@
   </div>
 
   <div class="safe-card" id="safeToSpendCard">
-    <button class="safe-edit-btn" onclick="openSafeModal()" title="Настроить">✏️</button>
+    <button class="safe-edit-btn" onclick="openSafeModal()" title="Настроить">
+      <i class="ph-bold ph-pencil-simple-line"></i>
+    </button>
     <div class="safe-title">Можно тратить в день <span class="safe-manual-badge" id="safeBadge" style="display:none;">вручную</span></div>
     <div class="safe-value" id="safeValue">— ₽</div>
     <div class="safe-sub" id="safeSub">Задайте бюджет или ручной лимит</div>
@@ -836,7 +835,7 @@
     </div>
     
     <p style="text-align:center; color: var(--text-muted); font-size: 12px; margin-top: 20px; margin-bottom: 20px;">
-      Мои финансы v7.1 · Данные хранятся на вашем устройстве
+      Мои финансы v7.2 · Данные хранятся на вашем устройстве
     </p>
   </section>
 
@@ -1631,7 +1630,6 @@
     
     let quick = sortedByFreq.slice(0, 5);
     
-    // Если выбранная категория не в quick — заменим последнюю, чтобы она всегда была видна
     if (!quick.find(c => c.name === state.selectedCategory)) {
       const selected = indexed.find(c => c.name === state.selectedCategory);
       if (selected) quick[quick.length - 1] = selected;
