@@ -523,6 +523,37 @@
     border: none; border-radius: 10px;
     font-weight: 600; cursor: pointer;
   }
+
+  /* === АНИМАЦИИ ДОСТИЖЕНИЙ === */
+  #fxCanvas {
+    position: fixed; top: 0; left: 0; width: 100vw; height: 100vh;
+    pointer-events: none; z-index: 3000;
+  }
+  .milestone-overlay {
+    position: fixed; inset: 0; z-index: 3100;
+    display: none; align-items: center; justify-content: center;
+    pointer-events: none; padding: 20px;
+  }
+  .milestone-overlay.show { display: flex; }
+  .milestone-card {
+    background: var(--card);
+    border-radius: 24px;
+    padding: 32px 24px;
+    box-shadow: 0 20px 60px rgba(0,0,0,0.55);
+    text-align: center; max-width: 340px; width: 100%;
+    border: 2px solid var(--primary);
+    animation: milestonePop 0.6s cubic-bezier(0.34, 1.56, 0.64, 1);
+  }
+  .milestone-card img {
+    width: 140px; height: 140px; object-fit: contain; margin-bottom: 16px;
+    filter: drop-shadow(0 8px 20px rgba(43,104,237,0.5));
+  }
+  .milestone-card h2 { font-size: 26px; margin-bottom: 8px; color: var(--primary); }
+  .milestone-card p { color: var(--text-muted); font-size: 14px; line-height: 1.4; }
+  @keyframes milestonePop {
+    from { opacity: 0; transform: scale(0.4) rotate(-6deg); }
+    to   { opacity: 1; transform: scale(1) rotate(0); }
+  }
 </style>
 </head>
 <body>
@@ -984,6 +1015,16 @@
   </div>
 </div>
 
+<!-- CANVAS ДЛЯ АНИМАЦИЙ ДОСТИЖЕНИЙ -->
+<canvas id="fxCanvas"></canvas>
+<div id="milestoneOverlay" class="milestone-overlay">
+  <div class="milestone-card">
+    <img id="milestoneImg" src="" alt="">
+    <h2 id="milestoneTitle"></h2>
+    <p id="milestoneSubtitle"></p>
+  </div>
+</div>
+
 <div id="editModal" class="modal-overlay">
   <div class="modal-content">
     <h3>Изменить запись</h3>
@@ -1017,6 +1058,7 @@
   const CAPITAL_KEY = 'finance_capital';
   const ACTIVE_STRATEGY_KEY = 'finance_active_strategy';
   const THEME_KEY = 'finance_theme';
+  const SHOWN_MILESTONES_KEY = 'shown_milestones';
 
   const EXPENSE_CATS = [
     { name: 'Еда', img: 'burger.png', color: '#f59e0b', bg: 'rgba(245,158,11,0.15)' },
@@ -1067,11 +1109,23 @@
   
   const CHART_COLORS = ['#2b68ed','#f59e0b','#10b981','#ef4444','#8b5cf6','#06b6d4','#ec4899','#84cc16','#f97316','#14b8a6'];
 
+  // Пороги достижений
+  const MILESTONES = [
+    { amount: 250000,  type: 'confetti', label: '250 000 ₽' },
+    { amount: 500000,  type: 'confetti', label: '500 000 ₽' },
+    { amount: 750000,  type: 'confetti', label: '750 000 ₽' },
+    { amount: 1000000, type: 'firework', label: '1 000 000 ₽' },
+    { amount: 1500000, type: 'firework', label: '1 500 000 ₽' },
+    { amount: 2000000, type: 'firework', label: '2 000 000 ₽' },
+    { amount: 5000000, type: 'mega',     label: '5 000 000 ₽', icon: 'ach_5m.png' }
+  ];
+
   const state = {
     transactions: JSON.parse(localStorage.getItem(STORAGE_KEY) || '[]'),
     budgets: JSON.parse(localStorage.getItem(BUDGETS_KEY) || '{}'),
     capital: JSON.parse(localStorage.getItem(CAPITAL_KEY) || '[]'),
     activeStrategy: JSON.parse(localStorage.getItem(ACTIVE_STRATEGY_KEY) || 'null'),
+    shownMilestones: JSON.parse(localStorage.getItem(SHOWN_MILESTONES_KEY) || '[]'),
     
     selectedType: 'expense',
     selectedCurrency: 'RUB',
@@ -1151,6 +1205,7 @@
   function saveBudgets() { localStorage.setItem(BUDGETS_KEY, JSON.stringify(state.budgets)); }
   function saveCapital() { localStorage.setItem(CAPITAL_KEY, JSON.stringify(state.capital)); }
   function saveActiveStrategy() { localStorage.setItem(ACTIVE_STRATEGY_KEY, JSON.stringify(state.activeStrategy)); }
+  function saveShownMilestones() { localStorage.setItem(SHOWN_MILESTONES_KEY, JSON.stringify(state.shownMilestones)); }
 
   function showToast(msg) {
     const t = $('toast'); t.textContent = msg; t.classList.add('show');
@@ -1185,6 +1240,177 @@
     return String(str).replace(/[&<>"']/g, s => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[s]));
   }
 
+  // ============ ДОСТИЖЕНИЯ / АНИМАЦИИ ============
+  function getTotalSavingsRUB() {
+    let t = 0;
+    state.capital.forEach(c => {
+      if (c.type === 'saving' && (c.currency === 'RUB' || !c.currency)) t += c.amount;
+    });
+    return t;
+  }
+
+  function checkMilestones(prevTotal, newTotal) {
+    MILESTONES.forEach(m => {
+      if (newTotal >= m.amount && prevTotal < m.amount && !state.shownMilestones.includes(m.amount)) {
+        state.shownMilestones.push(m.amount);
+        saveShownMilestones();
+        setTimeout(() => playMilestoneAnimation(m), 350);
+      }
+    });
+  }
+
+  // ===== CANVAS-ДВИЖОК =====
+  let fxParticles = [];
+  let fxRunning = false;
+
+  function ensureFxCanvas() {
+    const c = $('fxCanvas');
+    const dpr = window.devicePixelRatio || 1;
+    const w = window.innerWidth;
+    const h = window.innerHeight;
+    if (c.width !== w * dpr || c.height !== h * dpr) {
+      c.width = w * dpr;
+      c.height = h * dpr;
+      c.style.width = w + 'px';
+      c.style.height = h + 'px';
+    }
+    const ctx = c.getContext('2d');
+    ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
+    return { canvas: c, ctx };
+  }
+
+  function spawnConfetti() {
+    const colors = ['#2b68ed','#f59e0b','#10b981','#ef4444','#8b5cf6','#ec4899','#facc15','#06b6d4'];
+    const W = window.innerWidth;
+    for (let i = 0; i < 180; i++) {
+      fxParticles.push({
+        kind: 'confetti',
+        x: Math.random() * W,
+        y: -20 - Math.random() * 250,
+        vx: (Math.random() - 0.5) * 3,
+        vy: 2 + Math.random() * 4,
+        w: 6 + Math.random() * 7,
+        h: 8 + Math.random() * 8,
+        rot: Math.random() * Math.PI * 2,
+        vrot: (Math.random() - 0.5) * 0.3,
+        color: colors[Math.floor(Math.random() * colors.length)],
+        life: 0, maxLife: 200 + Math.random() * 120,
+        gravity: 0.06
+      });
+    }
+  }
+
+  function spawnFirework(x, y, baseColor) {
+    const n = 80 + Math.floor(Math.random() * 40);
+    const hue = Math.random() * 360;
+    for (let i = 0; i < n; i++) {
+      const angle = (Math.PI * 2 * i) / n + Math.random() * 0.15;
+      const speed = 2 + Math.random() * 4.5;
+      fxParticles.push({
+        kind: 'spark',
+        x, y,
+        vx: Math.cos(angle) * speed,
+        vy: Math.sin(angle) * speed,
+        r: 2 + Math.random() * 2,
+        color: baseColor || `hsl(${hue}, 100%, 62%)`,
+        life: 0, maxLife: 70 + Math.random() * 40,
+        gravity: 0.08, drag: 0.97
+      });
+    }
+  }
+
+  function fxLoop() {
+    const { ctx } = ensureFxCanvas();
+    const W = window.innerWidth, H = window.innerHeight;
+    ctx.clearRect(0, 0, W, H);
+
+    fxParticles = fxParticles.filter(p => {
+      p.life++;
+      p.vy += p.gravity;
+      if (p.drag) { p.vx *= p.drag; p.vy *= p.drag; }
+      p.x += p.vx; p.y += p.vy;
+      const alpha = Math.max(0, 1 - p.life / p.maxLife);
+
+      if (p.kind === 'confetti') {
+        p.rot += p.vrot;
+        ctx.save();
+        ctx.translate(p.x, p.y);
+        ctx.rotate(p.rot);
+        ctx.globalAlpha = alpha;
+        ctx.fillStyle = p.color;
+        ctx.fillRect(-p.w / 2, -p.h / 2, p.w, p.h);
+        ctx.restore();
+      } else {
+        ctx.globalAlpha = alpha;
+        ctx.beginPath();
+        ctx.arc(p.x, p.y, p.r * Math.max(alpha, 0.2), 0, Math.PI * 2);
+        ctx.fillStyle = p.color;
+        ctx.shadowBlur = 14;
+        ctx.shadowColor = p.color;
+        ctx.fill();
+        ctx.shadowBlur = 0;
+      }
+      return p.life < p.maxLife && p.y < H + 150 && p.x > -150 && p.x < W + 150;
+    });
+    ctx.globalAlpha = 1;
+
+    if (fxParticles.length > 0) requestAnimationFrame(fxLoop);
+    else { fxRunning = false; ctx.clearRect(0, 0, W, H); }
+  }
+
+  function startFxLoop() {
+    if (!fxRunning) { fxRunning = true; requestAnimationFrame(fxLoop); }
+  }
+
+  function playMilestoneAnimation(m) {
+    ensureFxCanvas();
+    const W = window.innerWidth, H = window.innerHeight;
+
+    if (m.type === 'confetti') {
+      spawnConfetti();
+      startFxLoop();
+      showToast(`🎉 Достижение: накоплено ${m.label}!`);
+    }
+    else if (m.type === 'firework') {
+      let count = 0;
+      const timer = setInterval(() => {
+        spawnFirework(W * (0.2 + Math.random() * 0.6), H * (0.2 + Math.random() * 0.4));
+        startFxLoop();
+        if (++count >= 4) clearInterval(timer);
+      }, 350);
+      showToast(`🎆 Достижение: накоплено ${m.label}!`);
+    }
+    else if (m.type === 'mega') {
+      let count = 0;
+      const timer = setInterval(() => {
+        spawnFirework(W * (0.15 + Math.random() * 0.7), H * (0.15 + Math.random() * 0.5));
+        startFxLoop();
+        if (++count >= 10) clearInterval(timer);
+      }, 220);
+
+      setTimeout(() => {
+        for (let i = 0; i < 3; i++) {
+          setTimeout(() => {
+            spawnFirework(W * (0.2 + Math.random() * 0.6), H * (0.2 + Math.random() * 0.5));
+            startFxLoop();
+          }, i * 200);
+        }
+      }, 2400);
+
+      setTimeout(() => {
+        $('milestoneImg').src = m.icon;
+        $('milestoneTitle').textContent = '5 000 000 ₽!';
+        $('milestoneSubtitle').textContent = 'Невероятное достижение! Вы накопили 5 миллионов рублей.';
+        const ov = $('milestoneOverlay');
+        ov.classList.add('show');
+        setTimeout(() => ov.classList.remove('show'), 5000);
+      }, 700);
+
+      showToast(`🏆 МЕГА-ДОСТИЖЕНИЕ: ${m.label}!`);
+    }
+  }
+  // ============ /ДОСТИЖЕНИЯ / АНИМАЦИИ ============
+
   // ПРОВЕРКА НАПОМИНАНИЙ
   function checkReminder() {
     const remEl = $('strategyReminder');
@@ -1193,7 +1419,6 @@
     const s = state.activeStrategy;
     const now = new Date();
     
-    // Проверка на достижение цели
     let totalSaved = 0;
     state.capital.forEach(c => {
       if (c.type === 'saving' && (c.currency === 'RUB' || !c.currency)) totalSaved += c.amount;
@@ -1204,7 +1429,6 @@
       return;
     }
 
-    // Проверка на время (когда последний раз откладывали)
     let isDue = false;
     if (!s.lastSavedDate) {
       isDue = true;
@@ -1244,7 +1468,7 @@
     $('totalIncomeUSD').textContent = fmt(usdInc, 'USD');
     $('totalExpenseUSD').textContent = fmt(usdExp, 'USD');
     
-    checkReminder(); // Обновляем напоминание при изменении баланса
+    checkReminder();
   }
 
   function renderCategories() {
@@ -1466,7 +1690,6 @@
       }
     }
     
-    // Обновляем прогресс стратегии, так как изменились накопления
     renderActiveStrategy();
     checkReminder();
   }
@@ -1493,11 +1716,15 @@
       const amount = parseFloat($('modalCapAmount').value);
       const name = $('modalCapName').value.trim();
       if (c && amount >= 0 && name) {
+        const prevTotal = getTotalSavingsRUB();
         c.amount = amount;
         c.name = name;
         saveCapital();
         renderCapital();
         closeEditModal();
+        if (c.type === 'saving' && (c.currency === 'RUB' || !c.currency)) {
+          checkMilestones(prevTotal, getTotalSavingsRUB());
+        }
         showToast('Сохранено');
       } else {
         showToast('Введите корректные данные');
@@ -1754,18 +1981,24 @@
       e.preventDefault();
       const amount = parseFloat($('capAmount').value), name = $('capDesc').value.trim();
       if (!name || !amount || amount <= 0) return;
-      
+
+      const prevTotal = getTotalSavingsRUB();
+
       state.capital.push({ id: Date.now() + Math.random(), amount, name, type: state.capType, currency: state.capCurrency, category: state.capCategory });
       saveCapital(); 
       $('capAmount').value = ''; $('capDesc').value = ''; 
       
-      // Если это накопление и есть активная стратегия - отмечаем, что мы отложили
       if (state.capType === 'saving' && state.capCurrency === 'RUB' && state.activeStrategy) {
         if (amount >= state.activeStrategy.amountPerPeriod) {
           state.activeStrategy.lastSavedDate = new Date().toISOString();
           saveActiveStrategy();
           showToast('Отлично! Напоминание по стратегии скрыто.');
         }
+      }
+
+      const newTotal = getTotalSavingsRUB();
+      if (state.capType === 'saving' && state.capCurrency === 'RUB') {
+        checkMilestones(prevTotal, newTotal);
       }
       
       renderCapital();
@@ -1833,7 +2066,6 @@
   }
   function setupTabs() { document.querySelectorAll('.tabs button').forEach(btn => btn.onclick = () => switchTab(btn.dataset.tab)); }
 
-  // НАВИГАЦИЯ ПО ПОДЭКРАНАМ (С АНИМАЦИЕЙ)
   window.openSubScreen = function(screenId) {
     currentSubScreen = screenId;
     
@@ -1871,7 +2103,6 @@
     }, 250);
   };
 
-  // РЕНДЕР ДОСТИЖЕНИЙ (С КАРТИНКАМИ)
   function renderAchievements() {
     const list = $('achievementsList');
     list.innerHTML = '';
@@ -1919,7 +2150,6 @@
     });
   }
 
-  // УНИВЕРСАЛЬНЫЙ КАЛЬКУЛЯТОР
   window.calculateSavings = function() {
     const target = parseFloat(document.getElementById('calcTarget').value) || 0;
     const initial = parseFloat(document.getElementById('calcInitial').value) || 0;
@@ -1956,7 +2186,6 @@
     `;
   };
 
-  // ЛОГИКА РАСКРЫТИЯ СТРАТЕГИЙ
   window.toggleStrategy = function(id) {
     const body = document.getElementById('body-' + id);
     const arrow = document.getElementById('arrow-' + id);
@@ -1969,7 +2198,6 @@
     }
   };
 
-  // МИНИ-КАЛЬКУЛЯТОРЫ
   window.calc503020 = function() {
     const val = parseFloat(document.getElementById('inc-503020').value) || 0;
     document.getElementById('res-503020').innerText = 'В копилку (20%): ' + fmt(val * 0.2);
@@ -2001,10 +2229,9 @@
     const start = parseFloat(document.getElementById('start-365').value) || 1;
     const total = 365 * (start + start + 364) / 2;
     document.getElementById('res-365').innerText = 'Итог за год: ' + fmt(total);
-    return start; // Для 365 возвращаем стартовую сумму как ежедневную
+    return start;
   };
 
-  // СЛЕДОВАНИЕ СТРАТЕГИИ
   window.openFollowModal = function(id, name, freq) {
     let amount = 0;
     if (id === '503020') amount = calc503020();
@@ -2082,7 +2309,6 @@
       if (c.type === 'saving' && (c.currency === 'RUB' || !c.currency)) totalSaved += c.amount;
     });
 
-    // Прогресс не может превышать 100%
     const pct = Math.min((totalSaved / s.target) * 100, 100);
 
     $('as-name').innerText = s.name;
@@ -2095,7 +2321,6 @@
     if (totalSaved >= s.target) {
       $('as-progress').style.background = 'var(--income)';
       $('as-pct').innerText = '🎉 Цель достигнута!';
-      // Автоматически останавливаем через 5 секунд
       if (!s._completed) {
         s._completed = true;
         setTimeout(() => {
@@ -2112,7 +2337,6 @@
     }
   }
 
-  // ОБРАБОТКА СВАЙПА ДЛЯ ВОЗВРАТА (ИСПРАВЛЕНО)
   function setupSwipeBack() {
     let touchStartX = 0;
     let touchStartY = 0;
@@ -2120,7 +2344,7 @@
 
     document.addEventListener('touchstart', e => {
       if (!currentSubScreen) return;
-      if (e.touches.length > 1) { isPinching = true; return; } // Игнорируем мультитач
+      if (e.touches.length > 1) { isPinching = true; return; }
       isPinching = false;
       touchStartX = e.changedTouches[0].screenX;
       touchStartY = e.changedTouches[0].screenY;
@@ -2179,7 +2403,7 @@
 
   function setupSettings() {
     $('exportBtn').onclick = () => {
-      const data = { transactions: state.transactions, budgets: state.budgets, capital: state.capital, activeStrategy: state.activeStrategy };
+      const data = { transactions: state.transactions, budgets: state.budgets, capital: state.capital, activeStrategy: state.activeStrategy, shownMilestones: state.shownMilestones };
       const blob = new Blob([JSON.stringify(data, null, 2)], { type: 'application/json' });
       const url = URL.createObjectURL(blob);
       const a = document.createElement('a'); a.href = url; a.download = `finance-backup-${new Date().toISOString().slice(0, 10)}.json`;
@@ -2192,21 +2416,27 @@
       reader.onload = ev => {
         try {
           const raw = JSON.parse(ev.target.result);
-          let txns, budgets, capital, activeStrat;
-          if (Array.isArray(raw)) { txns = raw; budgets = state.budgets; capital = state.capital; activeStrat = state.activeStrategy; }
-          else { txns = raw.transactions || []; budgets = raw.budgets || {}; capital = raw.capital || []; activeStrat = raw.activeStrategy || null; }
+          let txns, budgets, capital, activeStrat, shownM;
+          if (Array.isArray(raw)) { txns = raw; budgets = state.budgets; capital = state.capital; activeStrat = state.activeStrategy; shownM = state.shownMilestones; }
+          else {
+            txns = raw.transactions || [];
+            budgets = raw.budgets || {};
+            capital = raw.capital || [];
+            activeStrat = raw.activeStrategy || null;
+            shownM = Array.isArray(raw.shownMilestones) ? raw.shownMilestones : state.shownMilestones;
+          }
           if (!Array.isArray(txns)) throw new Error('Неверный формат');
           if (!confirm('Импортировать данные? Текущие данные будут заменены.')) return;
-          state.transactions = txns; state.budgets = budgets; state.capital = capital; state.activeStrategy = activeStrat;
-          save(); saveBudgets(); saveCapital(); saveActiveStrategy(); renderAll(); renderActiveStrategy(); showToast('Данные импортированы');
+          state.transactions = txns; state.budgets = budgets; state.capital = capital; state.activeStrategy = activeStrat; state.shownMilestones = shownM;
+          save(); saveBudgets(); saveCapital(); saveActiveStrategy(); saveShownMilestones(); renderAll(); renderActiveStrategy(); showToast('Данные импортированы');
         } catch (err) { alert('Ошибка импорта: ' + err.message); }
       };
       reader.readAsText(file); e.target.value = '';
     };
     $('clearBtn').onclick = () => {
       if (confirm('Удалить ВСЕ данные (операции, бюджеты, капитал и стратегии)?')) {
-        state.transactions = []; state.budgets = {}; state.capital = []; state.activeStrategy = null;
-        save(); saveBudgets(); saveCapital(); saveActiveStrategy(); renderAll(); renderActiveStrategy(); showToast('Все данные удалены');
+        state.transactions = []; state.budgets = {}; state.capital = []; state.activeStrategy = null; state.shownMilestones = [];
+        save(); saveBudgets(); saveCapital(); saveActiveStrategy(); saveShownMilestones(); renderAll(); renderActiveStrategy(); showToast('Все данные удалены');
       }
     };
   }
