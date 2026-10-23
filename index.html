@@ -78,6 +78,8 @@
     transition: background 0.3s ease, color 0.2s; 
     padding-top: 0;
     overflow-x: hidden;
+    /* Отключаем bounce-эффект на iOS для более нативного ощущения */
+    overscroll-behavior-y: none; 
   }
   
   /* Применяем градиент на body */
@@ -218,14 +220,18 @@
   .currency-toggle button.active { background: var(--primary-light); color: var(--primary); }
   
   .form-row { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; margin-bottom: 12px; }
+  
+  /* ИСПРАВЛЕНО: font-size: 16px предотвращает зум на iOS */
   input, select {
-    padding: 12px; border: none; border-radius: 12px; font-size: 15px; background: var(--input-bg); color: var(--text); width: 100%; outline: none; transition: box-shadow 0.2s; font-family: inherit;
+    padding: 12px; border: none; border-radius: 12px; font-size: 16px; 
+    background: var(--input-bg); color: var(--text); width: 100%; 
+    outline: none; transition: box-shadow 0.2s; font-family: inherit;
   }
   input:focus, select:focus { box-shadow: 0 0 0 2px var(--primary-light); }
   
   .select-btn {
     width: 100%; padding: 12px; border: none; border-radius: 12px;
-    font-size: 15px; background: var(--input-bg); color: var(--text);
+    font-size: 16px; background: var(--input-bg); color: var(--text);
     cursor: pointer; display: flex; justify-content: space-between; align-items: center;
     font-family: inherit; text-align: left;
   }
@@ -438,11 +444,21 @@
     transition: background 0.2s;
   }
   .strategy-header:hover { background: var(--input-bg); }
+  
+  /* ОБНОВЛЕННЫЕ ИКОНКИ СТРАТЕГИЙ */
   .strategy-icon {
-    width: 36px; height: 36px; border-radius: 10px; flex-shrink: 0;
+    width: 44px; height: 44px; border-radius: 12px; flex-shrink: 0;
     display: flex; align-items: center; justify-content: center;
-    background: var(--primary-light); color: var(--primary); font-size: 20px;
+    font-size: 24px; color: white;
+    box-shadow: 0 4px 10px rgba(0,0,0,0.15);
   }
+  .icon-503020 { background: linear-gradient(135deg, #3b82f6, #2563eb); }
+  .icon-payfirst { background: linear-gradient(135deg, #10b981, #059669); }
+  .icon-rule10 { background: linear-gradient(135deg, #f59e0b, #d97706); }
+  .icon-rule15 { background: linear-gradient(135deg, #8b5cf6, #6d28d9); }
+  .icon-rule1 { background: linear-gradient(135deg, #14b8a6, #0d9488); }
+  .icon-365 { background: linear-gradient(135deg, #ec4899, #be185d); }
+
   .strategy-title { font-size: 16px; font-weight: 600; color: var(--text); flex: 1; }
   
   /* Стрелочка */
@@ -475,7 +491,7 @@
     padding: 12px; margin-top: 10px;
   }
   .mini-calc label { font-size: 12px; color: var(--text-muted); margin-bottom: 4px; display: block; }
-  .mini-calc input { padding: 10px; font-size: 14px; margin-bottom: 8px; }
+  .mini-calc input { padding: 10px; font-size: 16px; margin-bottom: 8px; }
   .mini-result {
     font-size: 15px; font-weight: bold; color: var(--primary); margin-top: 8px; text-align: right;
   }
@@ -730,7 +746,7 @@
     </div>
     
     <p style="text-align:center; color: var(--text-muted); font-size: 12px; margin-top: 20px; margin-bottom: 20px;">
-      Мои финансы v6.8 · Данные хранятся на вашем устройстве
+      Мои финансы v6.9 · Данные хранятся на вашем устройстве
     </p>
   </section>
 
@@ -806,7 +822,7 @@
       <!-- 50/30/20 -->
       <div class="strategy-item">
         <div class="strategy-header" onclick="toggleStrategy('503020')">
-          <div class="strategy-icon"><i class="ph-fill ph-pie-chart"></i></div>
+          <div class="strategy-icon icon-503020"><i class="ph-fill ph-chart-pie-slice"></i></div>
           <div class="strategy-title">Правило 50/30/20</div>
           <i class="ph-bold ph-caret-down strategy-arrow" id="arrow-503020"></i>
         </div>
@@ -824,7 +840,7 @@
       <!-- Сначала заплати себе -->
       <div class="strategy-item">
         <div class="strategy-header" onclick="toggleStrategy('payfirst')">
-          <div class="strategy-icon"><i class="ph-fill ph-hand-coins"></i></div>
+          <div class="strategy-icon icon-payfirst"><i class="ph-fill ph-piggy-bank"></i></div>
           <div class="strategy-title">Сначала заплати себе</div>
           <i class="ph-bold ph-caret-down strategy-arrow" id="arrow-payfirst"></i>
         </div>
@@ -844,7 +860,7 @@
       <!-- Правило 10% -->
       <div class="strategy-item">
         <div class="strategy-header" onclick="toggleStrategy('rule10')">
-          <div class="strategy-icon"><i class="ph-fill ph-percent"></i></div>
+          <div class="strategy-icon icon-rule10"><i class="ph-fill ph-percent"></i></div>
           <div class="strategy-title">Правило 10%</div>
           <i class="ph-bold ph-caret-down strategy-arrow" id="arrow-rule10"></i>
         </div>
@@ -862,7 +878,7 @@
       <!-- Правило 15% -->
       <div class="strategy-item">
         <div class="strategy-header" onclick="toggleStrategy('rule15')">
-          <div class="strategy-icon"><i class="ph-fill ph-trend-up"></i></div>
+          <div class="strategy-icon icon-rule15"><i class="ph-fill ph-rocket"></i></div>
           <div class="strategy-title">Правило 15%</div>
           <i class="ph-bold ph-caret-down strategy-arrow" id="arrow-rule15"></i>
         </div>
@@ -880,7 +896,7 @@
       <!-- Правило одного процента -->
       <div class="strategy-item">
         <div class="strategy-header" onclick="toggleStrategy('rule1')">
-          <div class="strategy-icon"><i class="ph-fill ph-seedling"></i></div>
+          <div class="strategy-icon icon-rule1"><i class="ph-fill ph-plant"></i></div>
           <div class="strategy-title">Правило одного процента</div>
           <i class="ph-bold ph-caret-down strategy-arrow" id="arrow-rule1"></i>
         </div>
@@ -898,7 +914,7 @@
       <!-- Копилка 365 дней -->
       <div class="strategy-item">
         <div class="strategy-header" onclick="toggleStrategy('365')">
-          <div class="strategy-icon"><i class="ph-fill ph-calendar-check"></i></div>
+          <div class="strategy-icon icon-365"><i class="ph-fill ph-calendar-heart"></i></div>
           <div class="strategy-title">Копилка «365 дней»</div>
           <i class="ph-bold ph-caret-down strategy-arrow" id="arrow-365"></i>
         </div>
@@ -1185,7 +1201,6 @@
 
     if (totalSaved >= s.target) {
       remEl.classList.remove('show');
-      // Опционально: можно автоматически останавливать стратегию
       return;
     }
 
@@ -2097,19 +2112,26 @@
     }
   }
 
-  // ОБРАБОТКА СВАЙПА ДЛЯ ВОЗВРАТА
+  // ОБРАБОТКА СВАЙПА ДЛЯ ВОЗВРАТА (ИСПРАВЛЕНО)
   function setupSwipeBack() {
     let touchStartX = 0;
     let touchStartY = 0;
+    let isPinching = false;
 
     document.addEventListener('touchstart', e => {
       if (!currentSubScreen) return;
+      if (e.touches.length > 1) { isPinching = true; return; } // Игнорируем мультитач
+      isPinching = false;
       touchStartX = e.changedTouches[0].screenX;
       touchStartY = e.changedTouches[0].screenY;
     }, { passive: true });
 
+    document.addEventListener('touchmove', e => {
+      if (e.touches.length > 1) { isPinching = true; }
+    }, { passive: true });
+
     document.addEventListener('touchend', e => {
-      if (!currentSubScreen) return;
+      if (!currentSubScreen || isPinching) return;
 
       const touchEndX = e.changedTouches[0].screenX;
       const touchEndY = e.changedTouches[0].screenY;
