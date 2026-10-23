@@ -397,6 +397,37 @@
   .bottom-sheet .modal-content {
     max-width: 100%; border-radius: 24px 24px 0 0; max-height: 80vh; overflow-y: auto; padding-bottom: calc(20px + env(safe-area-inset-bottom, 0px));
   }
+
+  /* СТИЛИ ДЛЯ КАЛЬКУЛЯТОРА */
+  .calc-result-box {
+    margin-top: 20px; padding: 20px; border-radius: 16px; background: var(--input-bg); text-align: center;
+  }
+  .calc-time {
+    font-size: 32px; font-weight: bold; color: var(--primary); margin: 10px 0;
+  }
+
+  /* СТИЛИ ДЛЯ СТРАТЕГИЙ */
+  .strategy-item {
+    padding: 16px; border-bottom: 1px solid var(--border);
+    display: flex; flex-direction: column; gap: 8px;
+  }
+  .strategy-item:last-child { border-bottom: none; }
+  .strategy-header { display: flex; align-items: center; gap: 10px; }
+  .strategy-icon {
+    width: 36px; height: 36px; border-radius: 10px; flex-shrink: 0;
+    display: flex; align-items: center; justify-content: center;
+    background: var(--primary-light); color: var(--primary); font-size: 20px;
+  }
+  .strategy-title { font-size: 16px; font-weight: 600; color: var(--text); }
+  .strategy-desc { font-size: 13px; color: var(--text-muted); line-height: 1.4; margin-top: 4px; }
+  .strategy-example {
+    background: var(--input-bg); padding: 10px 12px; border-radius: 8px;
+    font-size: 12px; color: var(--text-muted); margin-top: 8px; border-left: 3px solid var(--primary);
+  }
+  .strategy-badge {
+    display: inline-block; font-size: 11px; padding: 2px 8px; border-radius: 4px;
+    background: var(--primary-light); color: var(--primary); font-weight: 600; margin-left: auto;
+  }
 </style>
 </head>
 <body>
@@ -500,7 +531,6 @@
     </div>
   </section>
 
-  <!-- ОБНОВЛЕННАЯ ВКЛАДКА АНАЛИЗ -->
   <section id="charts">
     <div class="card" style="margin-bottom: 16px;">
       <h3 style="font-size: 15px; margin-bottom: 12px; font-weight: 600; color: var(--text);">Топ-3 категорий трат</h3>
@@ -605,10 +635,17 @@
         </div>
         <i class="ph-bold ph-caret-right" style="color: var(--text-muted); font-size: 20px;"></i>
       </button>
+      <button class="data-menu-btn" onclick="openSubScreen('savings-calculator')">
+        <div style="display:flex; align-items:center; gap:12px;">
+          <i class="ph-fill ph-piggy-bank" style="color: #ec4899; font-size: 24px;"></i>
+          <span>Стратегии накопления</span>
+        </div>
+        <i class="ph-bold ph-caret-right" style="color: var(--text-muted); font-size: 20px;"></i>
+      </button>
     </div>
     
     <p style="text-align:center; color: var(--text-muted); font-size: 12px; margin-top: 20px; margin-bottom: 20px;">
-      Мои финансы v6.5 · Данные хранятся на вашем устройстве
+      Мои финансы v6.6 · Данные хранятся на вашем устройстве
     </p>
   </section>
 
@@ -626,6 +663,115 @@
   <section id="achievements" class="sub-screen">
     <div class="card" style="padding: 0; margin-top: 16px;">
       <div id="achievementsList"></div>
+    </div>
+  </section>
+
+  <!-- ПОДРАЗДЕЛ "СТРАТЕГИИ НАКОПЛЕНИЯ" -->
+  <section id="savings-calculator" class="sub-screen">
+    <div class="card" style="margin-top: 16px;">
+      <h3 style="font-size: 18px; margin-bottom: 16px; font-weight: 600;">Калькулятор накоплений</h3>
+      
+      <div style="margin-bottom: 12px;">
+        <label style="font-size: 13px; color: var(--text-muted); margin-bottom: 4px; display: block;">Желаемая сумма (₽)</label>
+        <input type="number" id="calcTarget" placeholder="Например: 1 000 000" value="1000000" oninput="calculateSavings()">
+      </div>
+
+      <div style="margin-bottom: 12px;">
+        <label style="font-size: 13px; color: var(--text-muted); margin-bottom: 4px; display: block;">Уже накоплено (₽)</label>
+        <input type="number" id="calcInitial" placeholder="0" value="0" oninput="calculateSavings()">
+      </div>
+
+      <div style="margin-bottom: 12px;">
+        <label style="font-size: 13px; color: var(--text-muted); margin-bottom: 4px; display: block;">Ежемесячный взнос (₽)</label>
+        <input type="number" id="calcMonthly" placeholder="Например: 15 000" value="15000" oninput="calculateSavings()">
+      </div>
+
+      <div class="calc-result-box" id="calcResult">
+        <!-- Результат появится здесь -->
+      </div>
+    </div>
+
+    <!-- БЛОК СТРАТЕГИЙ -->
+    <div class="card" style="padding: 0;">
+      <h3 style="font-size: 18px; padding: 16px 16px 8px 16px; font-weight: 600;">Стратегии накопления</h3>
+      
+      <div class="strategy-item">
+        <div class="strategy-header">
+          <div class="strategy-icon"><i class="ph-fill ph-pie-chart"></i></div>
+          <div class="strategy-title">Правило 50/30/20</div>
+        </div>
+        <div class="strategy-desc">
+          50% дохода — на обязательные нужды (жильё, еда, транспорт), 30% — на желания (кафе, развлечения), 20% — в копилку или инвестиции.
+        </div>
+        <div class="strategy-example">
+          💡 При зарплате 80 000 ₽: 40 000 ₽ — на нужды, 24 000 ₽ — на желания, <b>16 000 ₽ — в копилку</b>.
+        </div>
+      </div>
+
+      <div class="strategy-item">
+        <div class="strategy-header">
+          <div class="strategy-icon"><i class="ph-fill ph-hand-coins"></i></div>
+          <div class="strategy-title">Сначала заплати себе</div>
+        </div>
+        <div class="strategy-desc">
+          Откладывайте 10–20% дохода сразу после зарплаты, а не по остаточному принципу. Настройте автоперевод на накопительный счёт.
+        </div>
+        <div class="strategy-example">
+          💡 Получили 60 000 ₽ — сразу переведите <b>9 000 ₽ (15%)</b> на отдельный счёт.
+        </div>
+      </div>
+
+      <div class="strategy-item">
+        <div class="strategy-header">
+          <div class="strategy-icon"><i class="ph-fill ph-percent"></i></div>
+          <div class="strategy-title">Правило 10%</div>
+        </div>
+        <div class="strategy-desc">
+          Классика от Джорджа Клейсона («Самый богатый человек в Вавилоне»). Откладывайте десятую часть любого дохода — это почти незаметно[reference:12].
+        </div>
+        <div class="strategy-example">
+          💡 Доход 50 000 ₽ — откладывайте <b>5 000 ₽</b> каждый месяц.
+        </div>
+      </div>
+
+      <div class="strategy-item">
+        <div class="strategy-header">
+          <div class="strategy-icon"><i class="ph-fill ph-trend-up"></i></div>
+          <div class="strategy-title">Правило 15%</div>
+        </div>
+        <div class="strategy-desc">
+          «Золотая середина»: ощутимо для бюджета, но не слишком болезненно. Подходит тем, кто готов к более быстрому темпу.
+        </div>
+        <div class="strategy-example">
+          💡 Зарплата 60 000 ₽ → откладывайте <b>9 000 ₽</b> в месяц. За год — 108 000 ₽.
+        </div>
+      </div>
+
+      <div class="strategy-item">
+        <div class="strategy-header">
+          <div class="strategy-icon"><i class="ph-fill ph-seedling"></i></div>
+          <div class="strategy-title">Правило одного процента</div>
+        </div>
+        <div class="strategy-desc">
+          Начните с 1% от дохода и постепенно увеличивайте. Через полтора-два года дойдите до 15–20%.
+        </div>
+        <div class="strategy-example">
+          💡 Зарплата 70 000 ₽ → начните с <b>700 ₽</b>. Каждый месяц добавляйте по 1% (700 ₽), пока не дойдёте до комфортной суммы.
+        </div>
+      </div>
+
+      <div class="strategy-item">
+        <div class="strategy-header">
+          <div class="strategy-icon"><i class="ph-fill ph-calendar-check"></i></div>
+          <div class="strategy-title">Копилка «365 дней»</div>
+        </div>
+        <div class="strategy-desc">
+          Игровой челлендж: в первый день отложите 1 ₽, во второй — 2 ₽, в третий — 3 ₽ и так далее до 365 ₽[reference:15].
+        </div>
+        <div class="strategy-example">
+          💡 Если не пропускать ни дня, к концу года накопится <b>66 795 ₽</b> — отличный старт для финансовой подушки.
+        </div>
+      </div>
     </div>
   </section>
 </main>
@@ -955,7 +1101,6 @@
       }
     });
 
-    // Преобразуем в массив и сортируем по сумме (по убыванию)
     const sortedCats = Object.keys(catTotals)
       .map(cat => ({ category: cat, amount: catTotals[cat] }))
       .sort((a, b) => b.amount - a.amount);
@@ -1417,7 +1562,6 @@
   }
 
   function switchTab(name) {
-    // Если открыт подэкран, закрываем его
     if (currentSubScreen) {
       const screen = $(currentSubScreen);
       screen.classList.remove('active', 'slide-in', 'slide-out');
@@ -1435,7 +1579,6 @@
     const isSettings = (name === 'settings');
     const isCharts = (name === 'charts');
     
-    // Скрываем карточку баланса на вкладках Капитал, Ещё и Анализ
     $('mainBalanceCard').style.display = (isCap || isSettings || isCharts) ? 'none' : 'flex';
     $('capitalBalanceCard').style.display = isCap ? 'flex' : 'none';
 
@@ -1467,6 +1610,7 @@
     
     if (screenId === 'data-management') $('headerTitle').textContent = 'Работа с данными';
     if (screenId === 'achievements') { $('headerTitle').textContent = 'Достижения'; renderAchievements(); }
+    if (screenId === 'savings-calculator') { $('headerTitle').textContent = 'Стратегии'; calculateSavings(); }
   };
 
   window.closeSubScreen = function() {
@@ -1532,6 +1676,43 @@
       list.appendChild(div);
     });
   }
+
+  // ЛОГИКА КАЛЬКУЛЯТОРА НАКОПЛЕНИЙ
+  window.calculateSavings = function() {
+    const target = parseFloat(document.getElementById('calcTarget').value) || 0;
+    const initial = parseFloat(document.getElementById('calcInitial').value) || 0;
+    const monthly = parseFloat(document.getElementById('calcMonthly').value) || 0;
+    const resultEl = document.getElementById('calcResult');
+
+    if (target <= 0) {
+      resultEl.innerHTML = '<span style="color: var(--expense);">Введите цель больше 0</span>';
+      return;
+    }
+    if (monthly <= 0) {
+      resultEl.innerHTML = '<span style="color: var(--expense);">Введите взнос больше 0</span>';
+      return;
+    }
+
+    const remaining = target - initial;
+    if (remaining <= 0) {
+      resultEl.innerHTML = '<span style="color: var(--income); font-size: 18px;">🎉 Цель уже достигнута!</span>';
+      return;
+    }
+
+    const months = Math.ceil(remaining / monthly);
+    const years = Math.floor(months / 12);
+    const leftMonths = months % 12;
+
+    let timeStr = '';
+    if (years > 0) timeStr += `${years} г. `;
+    if (leftMonths > 0) timeStr += `${leftMonths} мес.`;
+
+    resultEl.innerHTML = `
+      <div style="color: var(--text-muted); font-size: 14px; margin-bottom: 8px;">Вам потребуется</div>
+      <div class="calc-time">${timeStr}</div>
+      <div style="color: var(--text-muted); font-size: 13px;">или ${months} мес.</div>
+    `;
+  };
 
   // ОБРАБОТКА СВАЙПА ДЛЯ ВОЗВРАТА
   function setupSwipeBack() {
