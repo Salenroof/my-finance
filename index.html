@@ -156,6 +156,26 @@
   .cap-detail-item .del { color: rgba(255,255,255,0.6); padding: 0 8px; margin-left: 4px; font-size: 18px; }
   .cap-detail-item .del:hover { color: #ffb3b3; }
 
+  /* ПЛАШКА НАПОМИНАНИЯ */
+  .strategy-reminder {
+    background: var(--income-bg);
+    border: 1px solid var(--income);
+    color: var(--income);
+    border-radius: 12px;
+    padding: 12px 16px;
+    margin-bottom: 16px;
+    display: none; /* Скрыто по умолчанию */
+    align-items: center;
+    gap: 12px;
+    box-shadow: var(--shadow);
+  }
+  .strategy-reminder.show { display: flex; }
+  .strategy-reminder .rem-text { flex: 1; font-size: 14px; font-weight: 500; line-height: 1.4; }
+  .strategy-reminder .rem-btn {
+    background: var(--income); color: white; border: none; padding: 6px 12px;
+    border-radius: 8px; font-weight: 600; font-size: 12px; cursor: pointer; white-space: nowrap;
+  }
+
   .tabs {
     position: fixed; bottom: 0; left: 0; right: 0; display: flex; background: var(--card);
     padding: 6px 0 calc(6px + env(safe-area-inset-bottom, 0px)) 0;
@@ -408,25 +428,84 @@
 
   /* СТИЛИ ДЛЯ СТРАТЕГИЙ */
   .strategy-item {
-    padding: 16px; border-bottom: 1px solid var(--border);
-    display: flex; flex-direction: column; gap: 8px;
+    border-bottom: 1px solid var(--border);
   }
   .strategy-item:last-child { border-bottom: none; }
-  .strategy-header { display: flex; align-items: center; gap: 10px; }
+  .strategy-header {
+    padding: 16px;
+    display: flex; align-items: center; gap: 10px;
+    cursor: pointer; user-select: none;
+    transition: background 0.2s;
+  }
+  .strategy-header:hover { background: var(--input-bg); }
   .strategy-icon {
     width: 36px; height: 36px; border-radius: 10px; flex-shrink: 0;
     display: flex; align-items: center; justify-content: center;
     background: var(--primary-light); color: var(--primary); font-size: 20px;
   }
-  .strategy-title { font-size: 16px; font-weight: 600; color: var(--text); }
-  .strategy-desc { font-size: 13px; color: var(--text-muted); line-height: 1.4; margin-top: 4px; }
+  .strategy-title { font-size: 16px; font-weight: 600; color: var(--text); flex: 1; }
+  
+  /* Стрелочка */
+  .strategy-arrow {
+    font-size: 20px; color: var(--text-muted);
+    transition: transform 0.3s ease;
+  }
+  .strategy-arrow.open { transform: rotate(180deg); }
+
+  .strategy-body {
+    padding: 0 16px 16px 16px;
+    display: none; /* Скрыто по умолчанию */
+    animation: fadeInDown 0.3s ease;
+  }
+  @keyframes fadeInDown {
+    from { opacity: 0; transform: translateY(-10px); }
+    to { opacity: 1; transform: translateY(0); }
+  }
+  
+  .strategy-desc { font-size: 13px; color: var(--text-muted); line-height: 1.4; margin-bottom: 8px; }
   .strategy-example {
     background: var(--input-bg); padding: 10px 12px; border-radius: 8px;
-    font-size: 12px; color: var(--text-muted); margin-top: 8px; border-left: 3px solid var(--primary);
+    font-size: 12px; color: var(--text-muted); border-left: 3px solid var(--primary);
+    margin-bottom: 12px;
   }
-  .strategy-badge {
-    display: inline-block; font-size: 11px; padding: 2px 8px; border-radius: 4px;
-    background: var(--primary-light); color: var(--primary); font-weight: 600; margin-left: auto;
+  
+  /* Мини-калькуляторы */
+  .mini-calc {
+    background: var(--card); border: 1px solid var(--border); border-radius: 12px;
+    padding: 12px; margin-top: 10px;
+  }
+  .mini-calc label { font-size: 12px; color: var(--text-muted); margin-bottom: 4px; display: block; }
+  .mini-calc input { padding: 10px; font-size: 14px; margin-bottom: 8px; }
+  .mini-result {
+    font-size: 15px; font-weight: bold; color: var(--primary); margin-top: 8px; text-align: right;
+  }
+  .follow-btn {
+    width: 100%; padding: 10px; margin-top: 10px;
+    background: var(--primary-light); color: var(--primary);
+    border: 1px solid var(--primary); border-radius: 10px;
+    font-weight: 600; cursor: pointer; transition: all 0.2s;
+  }
+  .follow-btn:hover { background: var(--primary); color: white; }
+
+  /* КАРТОЧКА АКТИВНОЙ СТРАТЕГИИ */
+  .active-strategy-card {
+    background: var(--card);
+    border: 2px solid var(--primary);
+    border-radius: 20px;
+    padding: 16px;
+    margin-bottom: 16px;
+    box-shadow: 0 4px 12px rgba(43, 104, 237, 0.15);
+    position: relative;
+  }
+  .active-strategy-card h3 { font-size: 16px; margin-bottom: 12px; color: var(--primary); display: flex; align-items: center; gap: 8px; }
+  .active-strategy-card .row { display: flex; justify-content: space-between; font-size: 13px; margin-bottom: 8px; }
+  .active-strategy-card .progress-bar { background: var(--input-bg); height: 10px; border-radius: 5px; margin-bottom: 8px; overflow: hidden; }
+  .active-strategy-card .progress-fill { height: 100%; background: var(--primary); border-radius: 5px; transition: width 0.3s; }
+  .active-strategy-card .stop-btn {
+    width: 100%; padding: 10px; margin-top: 10px;
+    background: var(--expense-bg); color: var(--expense);
+    border: none; border-radius: 10px;
+    font-weight: 600; cursor: pointer;
   }
 </style>
 </head>
@@ -467,6 +546,12 @@
         </div>
       </div>
     </div>
+  </div>
+
+  <!-- ПЛАШКА НАПОМИНАНИЯ -->
+  <div class="strategy-reminder" id="strategyReminder">
+    <div class="rem-text" id="reminderText"></div>
+    <button class="rem-btn" onclick="switchTab('capital')">Отложить</button>
   </div>
 
   <div class="balance-card" id="capitalBalanceCard" style="display:none; background: linear-gradient(135deg, #0ea5e9, #0284c7);">
@@ -645,7 +730,7 @@
     </div>
     
     <p style="text-align:center; color: var(--text-muted); font-size: 12px; margin-top: 20px; margin-bottom: 20px;">
-      Мои финансы v6.6 · Данные хранятся на вашем устройстве
+      Мои финансы v6.8 · Данные хранятся на вашем устройстве
     </p>
   </section>
 
@@ -668,8 +753,31 @@
 
   <!-- ПОДРАЗДЕЛ "СТРАТЕГИИ НАКОПЛЕНИЯ" -->
   <section id="savings-calculator" class="sub-screen">
+    
+    <!-- КАРТОЧКА АКТИВНОЙ СТРАТЕГИИ -->
+    <div class="active-strategy-card" id="activeStrategyCard" style="display: none;">
+      <h3><i class="ph-fill ph-target"></i> Вы следуете стратегии</h3>
+      <div style="font-size: 15px; font-weight: 600; margin-bottom: 8px;" id="as-name"></div>
+      <div class="row">
+        <span>Накоплено:</span>
+        <span id="as-current" style="font-weight: bold;">0 ₽</span>
+      </div>
+      <div class="row">
+        <span>Цель:</span>
+        <span id="as-target" style="font-weight: bold;">0 ₽</span>
+      </div>
+      <div class="progress-bar">
+        <div class="progress-fill" id="as-progress" style="width: 0%;"></div>
+      </div>
+      <div class="row" style="margin-top: 8px; color: var(--text-muted); font-size: 12px;">
+        <span id="as-pct">0%</span>
+        <span id="as-freq"></span>
+      </div>
+      <button class="stop-btn" onclick="stopFollowing()">Отменить следование</button>
+    </div>
+
     <div class="card" style="margin-top: 16px;">
-      <h3 style="font-size: 18px; margin-bottom: 16px; font-weight: 600;">Калькулятор накоплений</h3>
+      <h3 style="font-size: 18px; margin-bottom: 16px; font-weight: 600;">Универсальный калькулятор</h3>
       
       <div style="margin-bottom: 12px;">
         <label style="font-size: 13px; color: var(--text-muted); margin-bottom: 4px; display: block;">Желаемая сумма (₽)</label>
@@ -691,87 +799,120 @@
       </div>
     </div>
 
-    <!-- БЛОК СТРАТЕГИЙ -->
+    <!-- БЛОК СТРАТЕГИЙ С КАЛЬКУЛЯТОРАМИ -->
     <div class="card" style="padding: 0;">
       <h3 style="font-size: 18px; padding: 16px 16px 8px 16px; font-weight: 600;">Стратегии накопления</h3>
       
+      <!-- 50/30/20 -->
       <div class="strategy-item">
-        <div class="strategy-header">
+        <div class="strategy-header" onclick="toggleStrategy('503020')">
           <div class="strategy-icon"><i class="ph-fill ph-pie-chart"></i></div>
           <div class="strategy-title">Правило 50/30/20</div>
+          <i class="ph-bold ph-caret-down strategy-arrow" id="arrow-503020"></i>
         </div>
-        <div class="strategy-desc">
-          50% дохода — на обязательные нужды (жильё, еда, транспорт), 30% — на желания (кафе, развлечения), 20% — в копилку или инвестиции.
-        </div>
-        <div class="strategy-example">
-          💡 При зарплате 80 000 ₽: 40 000 ₽ — на нужды, 24 000 ₽ — на желания, <b>16 000 ₽ — в копилку</b>.
+        <div class="strategy-body" id="body-503020">
+          <div class="strategy-desc">50% дохода — на обязательные нужды, 30% — на желания, 20% — в копилку или инвестиции.</div>
+          <div class="mini-calc">
+            <label>Ваш ежемесячный доход (₽)</label>
+            <input type="number" id="inc-503020" placeholder="Например: 80000" oninput="calc503020()">
+            <div class="mini-result" id="res-503020">В копилку: 0 ₽</div>
+            <button class="follow-btn" onclick="openFollowModal('503020', 'Правило 50/30/20', 'monthly')">Следовать стратегии</button>
+          </div>
         </div>
       </div>
 
+      <!-- Сначала заплати себе -->
       <div class="strategy-item">
-        <div class="strategy-header">
+        <div class="strategy-header" onclick="toggleStrategy('payfirst')">
           <div class="strategy-icon"><i class="ph-fill ph-hand-coins"></i></div>
           <div class="strategy-title">Сначала заплати себе</div>
+          <i class="ph-bold ph-caret-down strategy-arrow" id="arrow-payfirst"></i>
         </div>
-        <div class="strategy-desc">
-          Откладывайте 10–20% дохода сразу после зарплаты, а не по остаточному принципу. Настройте автоперевод на накопительный счёт.
-        </div>
-        <div class="strategy-example">
-          💡 Получили 60 000 ₽ — сразу переведите <b>9 000 ₽ (15%)</b> на отдельный счёт.
+        <div class="strategy-body" id="body-payfirst">
+          <div class="strategy-desc">Откладывайте 10–20% дохода сразу после зарплаты, а не по остаточному принципу.</div>
+          <div class="mini-calc">
+            <label>Ваш ежемесячный доход (₽)</label>
+            <input type="number" id="inc-payfirst" placeholder="Например: 60000" oninput="calcPayFirst()">
+            <label>Процент (по умолчанию 15%)</label>
+            <input type="number" id="pct-payfirst" value="15" oninput="calcPayFirst()">
+            <div class="mini-result" id="res-payfirst">В копилку: 0 ₽</div>
+            <button class="follow-btn" onclick="openFollowModal('payfirst', 'Сначала заплати себе', 'monthly')">Следовать стратегии</button>
+          </div>
         </div>
       </div>
 
+      <!-- Правило 10% -->
       <div class="strategy-item">
-        <div class="strategy-header">
+        <div class="strategy-header" onclick="toggleStrategy('rule10')">
           <div class="strategy-icon"><i class="ph-fill ph-percent"></i></div>
           <div class="strategy-title">Правило 10%</div>
+          <i class="ph-bold ph-caret-down strategy-arrow" id="arrow-rule10"></i>
         </div>
-        <div class="strategy-desc">
-          Классика от Джорджа Клейсона («Самый богатый человек в Вавилоне»). Откладывайте десятую часть любого дохода — это почти незаметно[reference:12].
-        </div>
-        <div class="strategy-example">
-          💡 Доход 50 000 ₽ — откладывайте <b>5 000 ₽</b> каждый месяц.
+        <div class="strategy-body" id="body-rule10">
+          <div class="strategy-desc">Классика от Джорджа Клейсона. Откладывайте десятую часть любого дохода.</div>
+          <div class="mini-calc">
+            <label>Ваш ежемесячный доход (₽)</label>
+            <input type="number" id="inc-rule10" placeholder="Например: 50000" oninput="calcRule10()">
+            <div class="mini-result" id="res-rule10">В копилку: 0 ₽</div>
+            <button class="follow-btn" onclick="openFollowModal('rule10', 'Правило 10%', 'monthly')">Следовать стратегии</button>
+          </div>
         </div>
       </div>
 
+      <!-- Правило 15% -->
       <div class="strategy-item">
-        <div class="strategy-header">
+        <div class="strategy-header" onclick="toggleStrategy('rule15')">
           <div class="strategy-icon"><i class="ph-fill ph-trend-up"></i></div>
           <div class="strategy-title">Правило 15%</div>
+          <i class="ph-bold ph-caret-down strategy-arrow" id="arrow-rule15"></i>
         </div>
-        <div class="strategy-desc">
-          «Золотая середина»: ощутимо для бюджета, но не слишком болезненно. Подходит тем, кто готов к более быстрому темпу.
-        </div>
-        <div class="strategy-example">
-          💡 Зарплата 60 000 ₽ → откладывайте <b>9 000 ₽</b> в месяц. За год — 108 000 ₽.
+        <div class="strategy-body" id="body-rule15">
+          <div class="strategy-desc">«Золотая середина»: ощутимо для бюджета, но не слишком болезненно.</div>
+          <div class="mini-calc">
+            <label>Ваш ежемесячный доход (₽)</label>
+            <input type="number" id="inc-rule15" placeholder="Например: 70000" oninput="calcRule15()">
+            <div class="mini-result" id="res-rule15">В копилку: 0 ₽</div>
+            <button class="follow-btn" onclick="openFollowModal('rule15', 'Правило 15%', 'monthly')">Следовать стратегии</button>
+          </div>
         </div>
       </div>
 
+      <!-- Правило одного процента -->
       <div class="strategy-item">
-        <div class="strategy-header">
+        <div class="strategy-header" onclick="toggleStrategy('rule1')">
           <div class="strategy-icon"><i class="ph-fill ph-seedling"></i></div>
           <div class="strategy-title">Правило одного процента</div>
+          <i class="ph-bold ph-caret-down strategy-arrow" id="arrow-rule1"></i>
         </div>
-        <div class="strategy-desc">
-          Начните с 1% от дохода и постепенно увеличивайте. Через полтора-два года дойдите до 15–20%.
-        </div>
-        <div class="strategy-example">
-          💡 Зарплата 70 000 ₽ → начните с <b>700 ₽</b>. Каждый месяц добавляйте по 1% (700 ₽), пока не дойдёте до комфортной суммы.
+        <div class="strategy-body" id="body-rule1">
+          <div class="strategy-desc">Начните с 1% от дохода и постепенно увеличивайте.</div>
+          <div class="mini-calc">
+            <label>Ваш ежемесячный доход (₽)</label>
+            <input type="number" id="inc-rule1" placeholder="Например: 70000" oninput="calcRule1()">
+            <div class="mini-result" id="res-rule1">В копилку: 0 ₽</div>
+            <button class="follow-btn" onclick="openFollowModal('rule1', 'Правило 1%', 'monthly')">Следовать стратегии</button>
+          </div>
         </div>
       </div>
 
+      <!-- Копилка 365 дней -->
       <div class="strategy-item">
-        <div class="strategy-header">
+        <div class="strategy-header" onclick="toggleStrategy('365')">
           <div class="strategy-icon"><i class="ph-fill ph-calendar-check"></i></div>
           <div class="strategy-title">Копилка «365 дней»</div>
+          <i class="ph-bold ph-caret-down strategy-arrow" id="arrow-365"></i>
         </div>
-        <div class="strategy-desc">
-          Игровой челлендж: в первый день отложите 1 ₽, во второй — 2 ₽, в третий — 3 ₽ и так далее до 365 ₽[reference:15].
-        </div>
-        <div class="strategy-example">
-          💡 Если не пропускать ни дня, к концу года накопится <b>66 795 ₽</b> — отличный старт для финансовой подушки.
+        <div class="strategy-body" id="body-365">
+          <div class="strategy-desc">Игровой челлендж: в 1-й день отложите 1 ₽, во 2-й — 2 ₽, и так до 365 ₽.</div>
+          <div class="mini-calc">
+            <label>Начальная сумма (₽)</label>
+            <input type="number" id="start-365" value="1" oninput="calc365()">
+            <div class="mini-result" id="res-365">Итог за год: 66 795 ₽</div>
+            <button class="follow-btn" onclick="openFollowModal('365', 'Копилка 365', 'daily')">Следовать стратегии</button>
+          </div>
         </div>
       </div>
+
     </div>
   </section>
 </main>
@@ -809,6 +950,24 @@
   </button>
 </nav>
 
+<!-- МОДАЛЬНОЕ ОКНО ДЛЯ СЛЕДОВАНИЯ -->
+<div id="followModal" class="modal-overlay">
+  <div class="modal-content">
+    <h3 id="followTitle">Следовать стратегии</h3>
+    <p style="font-size: 13px; color: var(--text-muted); margin-bottom: 16px;" id="followSubtitle"></p>
+    <label style="font-size: 13px; color: var(--text-muted); margin-bottom: 4px; display: block;">Желаемая сумма (Цель, ₽)</label>
+    <input type="number" id="followTarget" placeholder="Например: 500000">
+    <input type="hidden" id="followId">
+    <input type="hidden" id="followFreq">
+    <input type="hidden" id="followAmount">
+    
+    <div class="modal-actions">
+      <button class="cancel-btn" onclick="document.getElementById('followModal').style.display='none'">Отмена</button>
+      <button class="submit-btn" onclick="confirmFollow()">Начать</button>
+    </div>
+  </div>
+</div>
+
 <div id="editModal" class="modal-overlay">
   <div class="modal-content">
     <h3>Изменить запись</h3>
@@ -840,6 +999,7 @@
   const STORAGE_KEY = 'finance_transactions';
   const BUDGETS_KEY = 'finance_budgets';
   const CAPITAL_KEY = 'finance_capital';
+  const ACTIVE_STRATEGY_KEY = 'finance_active_strategy';
   const THEME_KEY = 'finance_theme';
 
   const EXPENSE_CATS = [
@@ -895,6 +1055,7 @@
     transactions: JSON.parse(localStorage.getItem(STORAGE_KEY) || '[]'),
     budgets: JSON.parse(localStorage.getItem(BUDGETS_KEY) || '{}'),
     capital: JSON.parse(localStorage.getItem(CAPITAL_KEY) || '[]'),
+    activeStrategy: JSON.parse(localStorage.getItem(ACTIVE_STRATEGY_KEY) || 'null'),
     
     selectedType: 'expense',
     selectedCurrency: 'RUB',
@@ -973,6 +1134,7 @@
   function save() { localStorage.setItem(STORAGE_KEY, JSON.stringify(state.transactions)); }
   function saveBudgets() { localStorage.setItem(BUDGETS_KEY, JSON.stringify(state.budgets)); }
   function saveCapital() { localStorage.setItem(CAPITAL_KEY, JSON.stringify(state.capital)); }
+  function saveActiveStrategy() { localStorage.setItem(ACTIVE_STRATEGY_KEY, JSON.stringify(state.activeStrategy)); }
 
   function showToast(msg) {
     const t = $('toast'); t.textContent = msg; t.classList.add('show');
@@ -1007,6 +1169,49 @@
     return String(str).replace(/[&<>"']/g, s => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[s]));
   }
 
+  // ПРОВЕРКА НАПОМИНАНИЙ
+  function checkReminder() {
+    const remEl = $('strategyReminder');
+    if (!state.activeStrategy) { remEl.classList.remove('show'); return; }
+
+    const s = state.activeStrategy;
+    const now = new Date();
+    
+    // Проверка на достижение цели
+    let totalSaved = 0;
+    state.capital.forEach(c => {
+      if (c.type === 'saving' && (c.currency === 'RUB' || !c.currency)) totalSaved += c.amount;
+    });
+
+    if (totalSaved >= s.target) {
+      remEl.classList.remove('show');
+      // Опционально: можно автоматически останавливать стратегию
+      return;
+    }
+
+    // Проверка на время (когда последний раз откладывали)
+    let isDue = false;
+    if (!s.lastSavedDate) {
+      isDue = true;
+    } else {
+      const last = new Date(s.lastSavedDate);
+      if (s.frequency === 'daily') {
+        isDue = now.getDate() !== last.getDate() || now.getMonth() !== last.getMonth() || now.getFullYear() !== last.getFullYear();
+      } else if (s.frequency === 'weekly') {
+        isDue = (now - last) >= 7 * 24 * 60 * 60 * 1000;
+      } else if (s.frequency === 'monthly') {
+        isDue = now.getMonth() !== last.getMonth() || now.getFullYear() !== last.getFullYear();
+      }
+    }
+
+    if (isDue) {
+      remEl.classList.add('show');
+      $('reminderText').innerHTML = `🎯 <b>${s.name}:</b> пора отложить <b>${fmt(s.amountPerPeriod)}</b>`;
+    } else {
+      remEl.classList.remove('show');
+    }
+  }
+
   function renderBalance() {
     let rubInc = 0, rubExp = 0, usdInc = 0, usdExp = 0;
     state.transactions.forEach(t => {
@@ -1023,6 +1228,8 @@
     $('totalExpenseRUB').textContent = fmt(rubExp, 'RUB');
     $('totalIncomeUSD').textContent = fmt(usdInc, 'USD');
     $('totalExpenseUSD').textContent = fmt(usdExp, 'USD');
+    
+    checkReminder(); // Обновляем напоминание при изменении баланса
   }
 
   function renderCategories() {
@@ -1085,7 +1292,6 @@
     });
   }
 
-  // ТОП 3 КАТЕГОРИИ ТРАТ ЗА МЕСЯЦ (С ГРУППИРОВКОЙ)
   function renderTopExpenses() {
     const container = $('topExpensesList');
     if (!container) return;
@@ -1244,6 +1450,10 @@
         });
       }
     }
+    
+    // Обновляем прогресс стратегии, так как изменились накопления
+    renderActiveStrategy();
+    checkReminder();
   }
 
   function openEditModal(id) {
@@ -1287,6 +1497,11 @@
       if (e.target === catModal) {
         catModal.style.display = 'none';
       }
+    };
+
+    const followModal = $('followModal');
+    followModal.onclick = (e) => {
+      if (e.target === followModal) followModal.style.display = 'none';
     };
   }
 
@@ -1519,15 +1734,26 @@
         document.querySelectorAll('#capital .currency-toggle button').forEach(b => b.classList.toggle('active', b.dataset.currency === state.capCurrency));
       };
     });
+    
     $('capitalForm').onsubmit = e => {
       e.preventDefault();
       const amount = parseFloat($('capAmount').value), name = $('capDesc').value.trim();
       if (!name || !amount || amount <= 0) return;
+      
       state.capital.push({ id: Date.now() + Math.random(), amount, name, type: state.capType, currency: state.capCurrency, category: state.capCategory });
       saveCapital(); 
       $('capAmount').value = ''; $('capDesc').value = ''; 
+      
+      // Если это накопление и есть активная стратегия - отмечаем, что мы отложили
+      if (state.capType === 'saving' && state.capCurrency === 'RUB' && state.activeStrategy) {
+        if (amount >= state.activeStrategy.amountPerPeriod) {
+          state.activeStrategy.lastSavedDate = new Date().toISOString();
+          saveActiveStrategy();
+          showToast('Отлично! Напоминание по стратегии скрыто.');
+        }
+      }
+      
       renderCapital();
-      showToast('Добавлено');
     };
   }
 
@@ -1588,6 +1814,7 @@
     }
     if (name === 'budgets') renderBudgets();
     if (name === 'capital') renderCapital();
+    if (name === 'transactions') checkReminder();
   }
   function setupTabs() { document.querySelectorAll('.tabs button').forEach(btn => btn.onclick = () => switchTab(btn.dataset.tab)); }
 
@@ -1610,7 +1837,7 @@
     
     if (screenId === 'data-management') $('headerTitle').textContent = 'Работа с данными';
     if (screenId === 'achievements') { $('headerTitle').textContent = 'Достижения'; renderAchievements(); }
-    if (screenId === 'savings-calculator') { $('headerTitle').textContent = 'Стратегии'; calculateSavings(); }
+    if (screenId === 'savings-calculator') { $('headerTitle').textContent = 'Стратегии'; calculateSavings(); renderActiveStrategy(); }
   };
 
   window.closeSubScreen = function() {
@@ -1677,7 +1904,7 @@
     });
   }
 
-  // ЛОГИКА КАЛЬКУЛЯТОРА НАКОПЛЕНИЙ
+  // УНИВЕРСАЛЬНЫЙ КАЛЬКУЛЯТОР
   window.calculateSavings = function() {
     const target = parseFloat(document.getElementById('calcTarget').value) || 0;
     const initial = parseFloat(document.getElementById('calcInitial').value) || 0;
@@ -1714,6 +1941,162 @@
     `;
   };
 
+  // ЛОГИКА РАСКРЫТИЯ СТРАТЕГИЙ
+  window.toggleStrategy = function(id) {
+    const body = document.getElementById('body-' + id);
+    const arrow = document.getElementById('arrow-' + id);
+    if (body.style.display === 'block') {
+      body.style.display = 'none';
+      arrow.classList.remove('open');
+    } else {
+      body.style.display = 'block';
+      arrow.classList.add('open');
+    }
+  };
+
+  // МИНИ-КАЛЬКУЛЯТОРЫ
+  window.calc503020 = function() {
+    const val = parseFloat(document.getElementById('inc-503020').value) || 0;
+    document.getElementById('res-503020').innerText = 'В копилку (20%): ' + fmt(val * 0.2);
+    return val * 0.2;
+  };
+  window.calcPayFirst = function() {
+    const val = parseFloat(document.getElementById('inc-payfirst').value) || 0;
+    let pct = parseFloat(document.getElementById('pct-payfirst').value) || 0;
+    if(pct > 100) pct = 100;
+    document.getElementById('res-payfirst').innerText = 'В копилку: ' + fmt(val * (pct / 100));
+    return val * (pct / 100);
+  };
+  window.calcRule10 = function() {
+    const val = parseFloat(document.getElementById('inc-rule10').value) || 0;
+    document.getElementById('res-rule10').innerText = 'В копилку (10%): ' + fmt(val * 0.1);
+    return val * 0.1;
+  };
+  window.calcRule15 = function() {
+    const val = parseFloat(document.getElementById('inc-rule15').value) || 0;
+    document.getElementById('res-rule15').innerText = 'В копилку (15%): ' + fmt(val * 0.15);
+    return val * 0.15;
+  };
+  window.calcRule1 = function() {
+    const val = parseFloat(document.getElementById('inc-rule1').value) || 0;
+    document.getElementById('res-rule1').innerText = 'В копилку (1%): ' + fmt(val * 0.01);
+    return val * 0.01;
+  };
+  window.calc365 = function() {
+    const start = parseFloat(document.getElementById('start-365').value) || 1;
+    const total = 365 * (start + start + 364) / 2;
+    document.getElementById('res-365').innerText = 'Итог за год: ' + fmt(total);
+    return start; // Для 365 возвращаем стартовую сумму как ежедневную
+  };
+
+  // СЛЕДОВАНИЕ СТРАТЕГИИ
+  window.openFollowModal = function(id, name, freq) {
+    let amount = 0;
+    if (id === '503020') amount = calc503020();
+    else if (id === 'payfirst') amount = calcPayFirst();
+    else if (id === 'rule10') amount = calcRule10();
+    else if (id === 'rule15') amount = calcRule15();
+    else if (id === 'rule1') amount = calcRule1();
+    else if (id === '365') amount = calc365();
+
+    if (!amount || amount <= 0) {
+      showToast('Сначала введите данные для расчета!');
+      return;
+    }
+
+    $('followTitle').innerText = name;
+    $('followSubtitle').innerText = `Вы будете откладывать ${fmt(amount)} ${freq === 'daily' ? 'в день' : 'в месяц'}.`;
+    $('followTarget').value = '';
+    $('followId').value = id;
+    $('followFreq').value = freq;
+    $('followAmount').value = amount;
+    
+    $('followModal').style.display = 'flex';
+  };
+
+  window.confirmFollow = function() {
+    const target = parseFloat($('followTarget').value);
+    const id = $('followId').value;
+    const name = $('followTitle').innerText;
+    const freq = $('followFreq').value;
+    const amount = parseFloat($('followAmount').value);
+
+    if (!target || target <= 0) {
+      showToast('Введите корректную цель');
+      return;
+    }
+
+    state.activeStrategy = {
+      id,
+      name,
+      target,
+      frequency: freq,
+      amountPerPeriod: amount,
+      startDate: new Date().toISOString(),
+      lastSavedDate: null
+    };
+    
+    saveActiveStrategy();
+    $('followModal').style.display = 'none';
+    showToast('Вы начали следовать стратегии!');
+    renderActiveStrategy();
+    checkReminder();
+  };
+
+  window.stopFollowing = function() {
+    if (confirm('Вы уверены, что хотите отменить следование стратегии?')) {
+      state.activeStrategy = null;
+      saveActiveStrategy();
+      renderActiveStrategy();
+      checkReminder();
+      showToast('Следование отменено');
+    }
+  };
+
+  function renderActiveStrategy() {
+    const card = $('activeStrategyCard');
+    if (!state.activeStrategy) {
+      card.style.display = 'none';
+      return;
+    }
+    card.style.display = 'block';
+
+    const s = state.activeStrategy;
+    let totalSaved = 0;
+    state.capital.forEach(c => {
+      if (c.type === 'saving' && (c.currency === 'RUB' || !c.currency)) totalSaved += c.amount;
+    });
+
+    // Прогресс не может превышать 100%
+    const pct = Math.min((totalSaved / s.target) * 100, 100);
+
+    $('as-name').innerText = s.name;
+    $('as-current').innerText = fmt(totalSaved);
+    $('as-target').innerText = fmt(s.target);
+    $('as-progress').style.width = pct + '%';
+    $('as-pct').innerText = Math.round(pct) + '%';
+    $('as-freq').innerText = s.frequency === 'daily' ? 'Ежедневно' : 'Ежемесячно';
+
+    if (totalSaved >= s.target) {
+      $('as-progress').style.background = 'var(--income)';
+      $('as-pct').innerText = '🎉 Цель достигнута!';
+      // Автоматически останавливаем через 5 секунд
+      if (!s._completed) {
+        s._completed = true;
+        setTimeout(() => {
+          showToast('Стратегия выполнена! Отличная работа.');
+          state.activeStrategy = null;
+          saveActiveStrategy();
+          renderActiveStrategy();
+          checkReminder();
+        }, 3000);
+      }
+    } else {
+      $('as-progress').style.background = 'var(--primary)';
+      s._completed = false;
+    }
+  }
+
   // ОБРАБОТКА СВАЙПА ДЛЯ ВОЗВРАТА
   function setupSwipeBack() {
     let touchStartX = 0;
@@ -1726,108 +2109,4 @@
     }, { passive: true });
 
     document.addEventListener('touchend', e => {
-      if (!currentSubScreen) return;
-
-      const touchEndX = e.changedTouches[0].screenX;
-      const touchEndY = e.changedTouches[0].screenY;
-
-      const deltaX = touchEndX - touchStartX;
-      const deltaY = Math.abs(touchEndY - touchStartY);
-
-      if (deltaX > 60 && deltaY < 50) {
-        closeSubScreen();
-      }
-    }, { passive: true });
-  }
-
-  function setupFilters() {
-    document.querySelectorAll('[data-filter-type]').forEach(btn => {
-      btn.onclick = () => { state.filterType = btn.dataset.filterType; document.querySelectorAll('[data-filter-type]').forEach(b => b.classList.toggle('active', b.dataset.filterType === state.filterType)); renderList(); };
-    });
-    document.querySelectorAll('[data-filter-period]').forEach(btn => {
-      btn.onclick = () => {
-        const isActive = btn.classList.contains('active');
-        state.filterPeriod = isActive ? 'all' : btn.dataset.filterPeriod;
-        document.querySelectorAll('[data-filter-period]').forEach(b => b.classList.toggle('active', b.dataset.filterPeriod === state.filterPeriod));
-        renderList();
-      };
-    });
-    document.querySelectorAll('[data-chart-period]').forEach(btn => {
-      btn.onclick = () => { state.chartPeriod = btn.dataset.chartPeriod; document.querySelectorAll('[data-chart-period]').forEach(b => b.classList.toggle('active', b.dataset.chartPeriod === state.chartPeriod)); renderPieChart(); };
-    });
-  }
-
-  function setupTheme() {
-    const themeSwitch = $('themeToggleSwitch');
-    const savedTheme = localStorage.getItem(THEME_KEY) || 'light';
-    document.documentElement.dataset.theme = savedTheme;
-    
-    themeSwitch.checked = (savedTheme === 'dark');
-
-    themeSwitch.onchange = () => {
-      const next = themeSwitch.checked ? 'dark' : 'light';
-      document.documentElement.dataset.theme = next;
-      localStorage.setItem(THEME_KEY, next);
-      renderPieChart(); renderBarChart();
-    };
-  }
-
-  function setupSettings() {
-    $('exportBtn').onclick = () => {
-      const data = { transactions: state.transactions, budgets: state.budgets, capital: state.capital };
-      const blob = new Blob([JSON.stringify(data, null, 2)], { type: 'application/json' });
-      const url = URL.createObjectURL(blob);
-      const a = document.createElement('a'); a.href = url; a.download = `finance-backup-${new Date().toISOString().slice(0, 10)}.json`;
-      a.click(); URL.revokeObjectURL(url); showToast('Данные экспортированы');
-    };
-    $('importBtn').onclick = () => $('importFile').click();
-    $('importFile').onchange = e => {
-      const file = e.target.files[0]; if (!file) return;
-      const reader = new FileReader();
-      reader.onload = ev => {
-        try {
-          const raw = JSON.parse(ev.target.result);
-          let txns, budgets, capital;
-          if (Array.isArray(raw)) { txns = raw; budgets = state.budgets; capital = state.capital; }
-          else { txns = raw.transactions || []; budgets = raw.budgets || {}; capital = raw.capital || []; }
-          if (!Array.isArray(txns)) throw new Error('Неверный формат');
-          if (!confirm('Импортировать данные? Текущие данные будут заменены.')) return;
-          state.transactions = txns; state.budgets = budgets; state.capital = capital;
-          save(); saveBudgets(); saveCapital(); renderAll(); showToast('Данные импортированы');
-        } catch (err) { alert('Ошибка импорта: ' + err.message); }
-      };
-      reader.readAsText(file); e.target.value = '';
-    };
-    $('clearBtn').onclick = () => {
-      if (confirm('Удалить ВСЕ данные (операции, бюджеты и капитал)?')) {
-        state.transactions = []; state.budgets = {}; state.capital = [];
-        save(); saveBudgets(); saveCapital(); renderAll(); showToast('Все данные удалены');
-      }
-    };
-  }
-
-  function setupPWA() {
-    if ('serviceWorker' in navigator) navigator.serviceWorker.register('sw.js').catch(err => console.warn('SW error:', err));
-    let deferredPrompt;
-    window.addEventListener('beforeinstallprompt', e => { e.preventDefault(); deferredPrompt = e; $('installBanner').classList.add('show'); });
-    $('installBtn').onclick = async () => {
-      if (!deferredPrompt) return; deferredPrompt.prompt();
-      const { outcome } = await deferredPrompt.userChoice;
-      if (outcome === 'accepted') $('installBanner').classList.remove('show');
-      deferredPrompt = null;
-    };
-    window.addEventListener('appinstalled', () => { $('installBanner').classList.remove('show'); showToast('Приложение установлено!'); });
-  }
-
-  function init() {
-    sanitizeBudgets();
-    setupTheme(); setupTabs(); setupForms(); setupBudgets(); setupFilters(); setupSettings(); setupPWA(); setupModal(); setupSwipeBack();
-    renderCategories(); renderCapCategories(); renderAll();
-  }
-
-  if (document.readyState === 'loading') document.addEventListener('DOMContentLoaded', init);
-  else init();
-})();
-</script>
-</body>
-</html>
+      if
