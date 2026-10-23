@@ -2109,4 +2109,108 @@
     }, { passive: true });
 
     document.addEventListener('touchend', e => {
-      if
+      if (!currentSubScreen) return;
+
+      const touchEndX = e.changedTouches[0].screenX;
+      const touchEndY = e.changedTouches[0].screenY;
+
+      const deltaX = touchEndX - touchStartX;
+      const deltaY = Math.abs(touchEndY - touchStartY);
+
+      if (deltaX > 60 && deltaY < 50) {
+        closeSubScreen();
+      }
+    }, { passive: true });
+  }
+
+  function setupFilters() {
+    document.querySelectorAll('[data-filter-type]').forEach(btn => {
+      btn.onclick = () => { state.filterType = btn.dataset.filterType; document.querySelectorAll('[data-filter-type]').forEach(b => b.classList.toggle('active', b.dataset.filterType === state.filterType)); renderList(); };
+    });
+    document.querySelectorAll('[data-filter-period]').forEach(btn => {
+      btn.onclick = () => {
+        const isActive = btn.classList.contains('active');
+        state.filterPeriod = isActive ? 'all' : btn.dataset.filterPeriod;
+        document.querySelectorAll('[data-filter-period]').forEach(b => b.classList.toggle('active', b.dataset.filterPeriod === state.filterPeriod));
+        renderList();
+      };
+    });
+    document.querySelectorAll('[data-chart-period]').forEach(btn => {
+      btn.onclick = () => { state.chartPeriod = btn.dataset.chartPeriod; document.querySelectorAll('[data-chart-period]').forEach(b => b.classList.toggle('active', b.dataset.chartPeriod === state.chartPeriod)); renderPieChart(); };
+    });
+  }
+
+  function setupTheme() {
+    const themeSwitch = $('themeToggleSwitch');
+    const savedTheme = localStorage.getItem(THEME_KEY) || 'light';
+    document.documentElement.dataset.theme = savedTheme;
+    
+    themeSwitch.checked = (savedTheme === 'dark');
+
+    themeSwitch.onchange = () => {
+      const next = themeSwitch.checked ? 'dark' : 'light';
+      document.documentElement.dataset.theme = next;
+      localStorage.setItem(THEME_KEY, next);
+      renderPieChart(); renderBarChart();
+    };
+  }
+
+  function setupSettings() {
+    $('exportBtn').onclick = () => {
+      const data = { transactions: state.transactions, budgets: state.budgets, capital: state.capital, activeStrategy: state.activeStrategy };
+      const blob = new Blob([JSON.stringify(data, null, 2)], { type: 'application/json' });
+      const url = URL.createObjectURL(blob);
+      const a = document.createElement('a'); a.href = url; a.download = `finance-backup-${new Date().toISOString().slice(0, 10)}.json`;
+      a.click(); URL.revokeObjectURL(url); showToast('Данные экспортированы');
+    };
+    $('importBtn').onclick = () => $('importFile').click();
+    $('importFile').onchange = e => {
+      const file = e.target.files[0]; if (!file) return;
+      const reader = new FileReader();
+      reader.onload = ev => {
+        try {
+          const raw = JSON.parse(ev.target.result);
+          let txns, budgets, capital, activeStrat;
+          if (Array.isArray(raw)) { txns = raw; budgets = state.budgets; capital = state.capital; activeStrat = state.activeStrategy; }
+          else { txns = raw.transactions || []; budgets = raw.budgets || {}; capital = raw.capital || []; activeStrat = raw.activeStrategy || null; }
+          if (!Array.isArray(txns)) throw new Error('Неверный формат');
+          if (!confirm('Импортировать данные? Текущие данные будут заменены.')) return;
+          state.transactions = txns; state.budgets = budgets; state.capital = capital; state.activeStrategy = activeStrat;
+          save(); saveBudgets(); saveCapital(); saveActiveStrategy(); renderAll(); renderActiveStrategy(); showToast('Данные импортированы');
+        } catch (err) { alert('Ошибка импорта: ' + err.message); }
+      };
+      reader.readAsText(file); e.target.value = '';
+    };
+    $('clearBtn').onclick = () => {
+      if (confirm('Удалить ВСЕ данные (операции, бюджеты, капитал и стратегии)?')) {
+        state.transactions = []; state.budgets = {}; state.capital = []; state.activeStrategy = null;
+        save(); saveBudgets(); saveCapital(); saveActiveStrategy(); renderAll(); renderActiveStrategy(); showToast('Все данные удалены');
+      }
+    };
+  }
+
+  function setupPWA() {
+    if ('serviceWorker' in navigator) navigator.serviceWorker.register('sw.js').catch(err => console.warn('SW error:', err));
+    let deferredPrompt;
+    window.addEventListener('beforeinstallprompt', e => { e.preventDefault(); deferredPrompt = e; $('installBanner').classList.add('show'); });
+    $('installBtn').onclick = async () => {
+      if (!deferredPrompt) return; deferredPrompt.prompt();
+      const { outcome } = await deferredPrompt.userChoice;
+      if (outcome === 'accepted') $('installBanner').classList.remove('show');
+      deferredPrompt = null;
+    };
+    window.addEventListener('appinstalled', () => { $('installBanner').classList.remove('show'); showToast('Приложение установлено!'); });
+  }
+
+  function init() {
+    sanitizeBudgets();
+    setupTheme(); setupTabs(); setupForms(); setupBudgets(); setupFilters(); setupSettings(); setupPWA(); setupModal(); setupSwipeBack();
+    renderCategories(); renderCapCategories(); renderAll(); renderActiveStrategy();
+  }
+
+  if (document.readyState === 'loading') document.addEventListener('DOMContentLoaded', init);
+  else init();
+})();
+</script>
+</body>
+</html>
