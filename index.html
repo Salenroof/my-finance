@@ -161,6 +161,7 @@
     background: linear-gradient(135deg, var(--primary), var(--primary-dark));
     color: white; border-radius: 16px; padding: 20px;
     margin-bottom: 16px; box-shadow: var(--shadow); display: none;
+    position: relative;
   }
   .safe-card.safe-warn { background: linear-gradient(135deg, #f59e0b, #d97706); }
   .safe-card.safe-danger { background: linear-gradient(135deg, #ef4444, #b91c1c); }
@@ -172,6 +173,19 @@
   .safe-card .safe-fill.warn { background: #fde68a; }
   .safe-card .safe-fill.danger { background: #fca5a5; }
   .safe-card .safe-today { font-size: 12px; margin-top: 8px; opacity: 0.9; text-align: right; }
+  .safe-edit-btn {
+    position: absolute; top: 14px; right: 14px;
+    background: rgba(255,255,255,0.22); border: none; color: white;
+    width: 32px; height: 32px; border-radius: 50%; cursor: pointer;
+    display: flex; align-items: center; justify-content: center; font-size: 14px;
+    transition: background 0.2s;
+  }
+  .safe-edit-btn:hover { background: rgba(255,255,255,0.4); }
+  .safe-manual-badge {
+    display: inline-block; font-size: 10px; padding: 2px 6px;
+    background: rgba(255,255,255,0.3); border-radius: 4px;
+    margin-left: 6px; vertical-align: middle; font-weight: 500;
+  }
 
   .tabs {
     position: fixed; bottom: 0; left: 0; right: 0; display: flex; background: var(--card);
@@ -244,7 +258,7 @@
     display: flex; align-items: center; justify-content: center;
   }
 
-  .categories { display: flex; flex-wrap: wrap; gap: 6px; margin-bottom: 12px; max-height: 220px; overflow-y: auto; }
+  .categories { display: flex; flex-wrap: wrap; gap: 6px; margin-bottom: 12px; max-height: 260px; overflow-y: auto; }
   .chip {
     padding: 8px 12px; border: none; background: var(--input-bg); border-radius: 20px; font-size: 13px; cursor: pointer; color: var(--text-muted); transition: all 0.2s; font-family: inherit; display: flex; align-items: center; gap: 6px;
   }
@@ -254,6 +268,16 @@
   .chip.quick::before {
     content: '🔥'; font-size: 11px; margin-right: 2px;
   }
+  .chip.toggle-chip {
+    background: var(--primary-light);
+    color: var(--primary);
+    font-weight: 600;
+    gap: 4px;
+    width: 100%;
+    justify-content: center;
+    margin-top: 4px;
+  }
+  .chip.toggle-chip i { font-size: 14px; }
   
   .submit-btn {
     width: 100%; padding: 14px; background: linear-gradient(135deg, var(--primary), var(--primary-dark)); color: white; border: none; border-radius: 12px; font-size: 15px; font-weight: 600; cursor: pointer; transition: opacity 0.2s; font-family: inherit;
@@ -299,7 +323,6 @@
   .chart-wrapper { position: relative; height: 260px; }
   .waterfall-wrapper { position: relative; height: 240px; }
 
-  /* Δ% карточка */
   .month-compare {
     background: var(--card); border-radius: 20px; padding: 16px; margin-bottom: 16px; box-shadow: var(--shadow);
   }
@@ -528,11 +551,19 @@
     margin-bottom: 16px; box-shadow: var(--shadow); text-align: center;
   }
   .health-ring {
-    width: 160px; height: 160px; margin: 0 auto 16px;
+    width: 180px; height: 180px; margin: 0 auto 16px;
     border-radius: 50%; display: flex; align-items: center; justify-content: center;
-    font-size: 48px; font-weight: bold; position: relative;
+    position: relative; background: var(--input-bg);
+    transition: background 0.3s;
   }
-  .health-ring-label { font-size: 13px; color: var(--text-muted); margin-top: -8px; }
+  .health-ring-inner {
+    width: 140px; height: 140px; border-radius: 50%;
+    background: var(--card);
+    display: flex; flex-direction: column; align-items: center; justify-content: center;
+    box-shadow: 0 2px 10px rgba(0,0,0,0.08);
+  }
+  .health-ring-value { font-size: 48px; font-weight: bold; line-height: 1; transition: color 0.3s; }
+  .health-ring-label { font-size: 12px; color: var(--text-muted); margin-top: 4px; }
   .health-status-text { font-size: 20px; font-weight: 600; margin-top: 8px; }
   .health-breakdown { padding: 0 16px; }
   .health-row {
@@ -586,11 +617,11 @@
     </div>
   </div>
 
-  <!-- SAFE-TO-SPEND (показывается на экране Бюджет) -->
   <div class="safe-card" id="safeToSpendCard">
-    <div class="safe-title">Можно тратить в день</div>
+    <button class="safe-edit-btn" onclick="openSafeModal()" title="Настроить">✏️</button>
+    <div class="safe-title">Можно тратить в день <span class="safe-manual-badge" id="safeBadge" style="display:none;">вручную</span></div>
     <div class="safe-value" id="safeValue">— ₽</div>
-    <div class="safe-sub" id="safeSub">Задайте бюджет, чтобы увидеть лимит</div>
+    <div class="safe-sub" id="safeSub">Задайте бюджет или ручной лимит</div>
     <div class="safe-bar"><div class="safe-fill" id="safeFill" style="width: 0%;"></div></div>
     <div class="safe-today" id="safeToday"></div>
   </div>
@@ -693,19 +724,16 @@
       <div class="chart-wrapper"><canvas id="barChart"></canvas></div>
     </div>
 
-    <!-- Δ% к прошлому месяцу -->
     <div class="month-compare">
       <h3>Сравнение с прошлым месяцем (₽)</h3>
       <div id="monthCompareRows"></div>
     </div>
 
-    <!-- График по дням недели -->
     <div class="chart-card">
       <h3>Расходы по дням недели (₽)</h3>
       <div class="chart-wrapper"><canvas id="weekdayChart"></canvas></div>
     </div>
 
-    <!-- Waterfall -->
     <div class="chart-card">
       <h3>Доход → Расходы → Остаток (₽, этот месяц)</h3>
       <div class="waterfall-wrapper"><canvas id="waterfallCanvas"></canvas></div>
@@ -808,7 +836,7 @@
     </div>
     
     <p style="text-align:center; color: var(--text-muted); font-size: 12px; margin-top: 20px; margin-bottom: 20px;">
-      Мои финансы v7.0 · Данные хранятся на вашем устройстве
+      Мои финансы v7.1 · Данные хранятся на вашем устройстве
     </p>
   </section>
 
@@ -976,11 +1004,14 @@
     </div>
   </section>
 
-  <!-- HEALTH CHECK -->
   <section id="health-check" class="sub-screen">
     <div class="health-score-card">
-      <div class="health-ring" id="healthRing">0</div>
-      <div class="health-ring-label">из 100</div>
+      <div class="health-ring" id="healthRing">
+        <div class="health-ring-inner">
+          <span class="health-ring-value" id="healthScore">0</span>
+          <span class="health-ring-label">из 100</span>
+        </div>
+      </div>
       <div class="health-status-text" id="healthStatus">—</div>
     </div>
     <div class="card" style="padding: 0;">
@@ -1028,6 +1059,24 @@
   </div>
 </div>
 
+<div id="safeModal" class="modal-overlay">
+  <div class="modal-content">
+    <h3>Дневной лимит</h3>
+    <p style="font-size: 13px; color: var(--text-muted); margin-bottom: 12px; line-height: 1.4;">
+      Задайте сумму вручную, или оставьте пустым для авторасчёта:<br>
+      <b>(остаток бюджета) ÷ (дней до конца месяца)</b>
+    </p>
+    <input type="number" id="safeManualInput" placeholder="Например: 2000" step="1" min="0">
+    <div class="modal-actions" style="justify-content: space-between;">
+      <button class="cancel-btn" onclick="resetSafeManual()" style="color: var(--primary);">Авто</button>
+      <div style="display:flex; gap:10px;">
+        <button class="cancel-btn" onclick="document.getElementById('safeModal').style.display='none'">Отмена</button>
+        <button class="submit-btn" onclick="saveSafeManual()">Сохранить</button>
+      </div>
+    </div>
+  </div>
+</div>
+
 <canvas id="fxCanvas"></canvas>
 <div id="milestoneOverlay" class="milestone-overlay">
   <div class="milestone-card">
@@ -1071,6 +1120,7 @@
   const ACTIVE_STRATEGY_KEY = 'finance_active_strategy';
   const THEME_KEY = 'finance_theme';
   const SHOWN_MILESTONES_KEY = 'shown_milestones';
+  const SAFE_MANUAL_KEY = 'safe_manual';
 
   const EXPENSE_CATS = [
     { name: 'Еда', img: 'burger.png', color: '#f59e0b', bg: 'rgba(245,158,11,0.15)' },
@@ -1133,18 +1183,22 @@
 
   const TRANSFER_ICON = { name: 'Перевод', icon: 'arrows-left-right', color: '#6b7280', bg: 'rgba(107,114,128,0.15)' };
 
+  const safeManualRaw = localStorage.getItem(SAFE_MANUAL_KEY);
+
   const state = {
     transactions: JSON.parse(localStorage.getItem(STORAGE_KEY) || '[]'),
     budgets: JSON.parse(localStorage.getItem(BUDGETS_KEY) || '{}'),
     capital: JSON.parse(localStorage.getItem(CAPITAL_KEY) || '[]'),
     activeStrategy: JSON.parse(localStorage.getItem(ACTIVE_STRATEGY_KEY) || 'null'),
     shownMilestones: JSON.parse(localStorage.getItem(SHOWN_MILESTONES_KEY) || '[]'),
+    safeManual: (safeManualRaw === null || safeManualRaw === '') ? null : (isNaN(parseFloat(safeManualRaw)) ? null : parseFloat(safeManualRaw)),
     
     selectedType: 'expense',
     selectedCurrency: 'RUB',
     selectedCategory: 'Еда',
     selectedBudgetCategory: '',
     editingId: null,
+    categoriesExpanded: false,
     
     capType: 'saving',
     capCurrency: 'RUB',
@@ -1253,7 +1307,7 @@
     return String(str).replace(/[&<>"']/g, s => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[s]));
   }
 
-  // ============ ДОСТИЖЕНИЯ / АНИМАЦИИ ============
+  // ============ ДОСТИЖЕНИЯ ============
   function getTotalSavingsRUB() {
     let t = 0;
     state.capital.forEach(c => {
@@ -1453,94 +1507,159 @@
     Object.values(budgets).forEach(v => { if (typeof v === 'number') totalLimit += v; });
     
     const card = $('safeToSpendCard');
+    const badge = $('safeBadge');
     card.classList.remove('safe-warn', 'safe-danger');
     
-    if (totalLimit === 0) {
-      $('safeValue').textContent = '— ₽';
-      $('safeSub').textContent = 'Задайте бюджет ниже, чтобы увидеть дневной лимит';
-      $('safeFill').style.width = '0%';
-      $('safeToday').textContent = '';
-      return;
-    }
-    
-    let totalSpent = 0;
+    let totalSpent = 0, spentToday = 0;
+    const todayStr = now.toISOString().slice(0, 10);
     state.transactions.forEach(t => {
       if (t.type !== 'expense' || (t.currency || 'RUB') !== 'RUB') return;
       const d = new Date(t.date);
       if (d.getMonth() === now.getMonth() && d.getFullYear() === now.getFullYear()) {
         totalSpent += t.amount;
       }
-    });
-    
-    const remaining = totalLimit - totalSpent;
-    const daysInMonth = new Date(now.getFullYear(), now.getMonth() + 1, 0).getDate();
-    const daysLeft = Math.max(1, daysInMonth - now.getDate() + 1);
-    const perDay = Math.max(0, remaining) / daysLeft;
-    
-    const todayStr = now.toISOString().slice(0, 10);
-    let spentToday = 0;
-    state.transactions.forEach(t => {
-      if (t.type !== 'expense' || (t.currency || 'RUB') !== 'RUB') return;
       if (t.date.slice(0, 10) === todayStr) spentToday += t.amount;
     });
     
+    const daysInMonth = new Date(now.getFullYear(), now.getMonth() + 1, 0).getDate();
+    const daysLeft = Math.max(1, daysInMonth - now.getDate() + 1);
+    
+    const isManual = state.safeManual !== null && state.safeManual !== undefined;
+    const remaining = totalLimit - totalSpent;
+    
+    let perDay;
+    if (isManual) {
+      perDay = state.safeManual;
+      badge.style.display = 'inline-block';
+    } else {
+      if (totalLimit === 0) {
+        $('safeValue').textContent = '— ₽';
+        $('safeSub').textContent = 'Задайте бюджет или ручной лимит (✏️)';
+        $('safeFill').style.width = '0%';
+        $('safeToday').textContent = '';
+        badge.style.display = 'none';
+        return;
+      }
+      perDay = Math.max(0, remaining) / daysLeft;
+      badge.style.display = 'none';
+    }
+    
     const pct = perDay > 0 ? Math.min(spentToday / perDay * 100, 100) : (spentToday > 0 ? 100 : 0);
     
-    $('safeValue').textContent = remaining >= 0 ? fmt(perDay, 'RUB') : '0 ₽';
-    $('safeSub').textContent = remaining >= 0 
-      ? `Остаток ${fmt(remaining, 'RUB')} · ${daysLeft} дн.` 
-      : `Бюджет превышен на ${fmt(-remaining, 'RUB')}`;
+    $('safeValue').textContent = fmt(perDay, 'RUB');
+    
+    if (isManual) {
+      if (totalLimit > 0) {
+        $('safeSub').textContent = `Остаток бюджета ${fmt(remaining, 'RUB')} · ${daysLeft} дн. до конца`;
+      } else {
+        $('safeSub').textContent = `Ручной лимит · ${daysLeft} дн. до конца`;
+      }
+    } else {
+      $('safeSub').textContent = remaining >= 0 
+        ? `Остаток ${fmt(remaining, 'RUB')} · ${daysLeft} дн.` 
+        : `Бюджет превышен на ${fmt(-remaining, 'RUB')}`;
+    }
+    
     $('safeFill').style.width = pct + '%';
     $('safeFill').className = 'safe-fill' + (pct >= 100 ? ' danger' : pct >= 80 ? ' warn' : '');
     $('safeToday').textContent = `Потрачено сегодня: ${fmt(spentToday, 'RUB')}`;
     
-    if (remaining < 0) card.classList.add('safe-danger');
+    if (!isManual && remaining < 0) card.classList.add('safe-danger');
     else if (pct >= 80) card.classList.add('safe-warn');
+  }
+
+  window.openSafeModal = function() {
+    $('safeManualInput').value = state.safeManual !== null ? state.safeManual : '';
+    $('safeModal').style.display = 'flex';
+    setTimeout(() => $('safeManualInput').focus(), 100);
+  };
+
+  window.saveSafeManual = function() {
+    const val = $('safeManualInput').value.trim();
+    if (val === '') {
+      state.safeManual = null;
+      localStorage.removeItem(SAFE_MANUAL_KEY);
+      showToast('Лимит сброшен к авторасчёту');
+    } else {
+      const num = parseFloat(val);
+      if (isNaN(num) || num < 0) { showToast('Введите корректное число'); return; }
+      state.safeManual = num;
+      localStorage.setItem(SAFE_MANUAL_KEY, String(num));
+      showToast('Дневной лимит сохранён');
+    }
+    $('safeModal').style.display = 'none';
+    renderSafeToSpend();
+  };
+
+  window.resetSafeManual = function() {
+    state.safeManual = null;
+    localStorage.removeItem(SAFE_MANUAL_KEY);
+    $('safeManualInput').value = '';
+    $('safeModal').style.display = 'none';
+    showToast('Лимит сброшен к авторасчёту');
+    renderSafeToSpend();
+  };
+
+  function makeCatChip(c, isQuick) {
+    const btn = document.createElement('button');
+    btn.type = 'button';
+    btn.className = 'chip' + (c.name === state.selectedCategory ? ' active' : '') + (isQuick ? ' quick' : '');
+    if (c.name === state.selectedCategory) {
+      btn.style.backgroundColor = c.bg;
+      btn.style.color = c.color;
+    }
+    btn.innerHTML = `${getIconHtml(c, 18)} ${c.name}`;
+    btn.onclick = () => { state.selectedCategory = c.name; renderCategories(); };
+    return btn;
   }
 
   function renderCategories() {
     const cats = state.selectedType === 'income' ? INCOME_CATS : EXPENSE_CATS;
     if (!cats.find(c => c.name === state.selectedCategory)) state.selectedCategory = cats[0].name;
     
-    // Считаем частоту по всем операциям нужного типа
     const freq = {};
     state.transactions.forEach(t => {
       if (t.type !== state.selectedType) return;
       freq[t.category] = (freq[t.category] || 0) + 1;
     });
     
-    // Сортируем: сначала по частоте (убывание), потом по исходному порядку
-    const sorted = [...cats].sort((a, b) => {
-      const fa = freq[a.name] || 0;
-      const fb = freq[b.name] || 0;
-      return fb - fa;
+    const indexed = cats.map((c, i) => ({ ...c, origIdx: i, f: freq[c.name] || 0 }));
+    const sortedByFreq = [...indexed].sort((a, b) => {
+      if (b.f !== a.f) return b.f - a.f;
+      return a.origIdx - b.origIdx;
     });
     
-    // 5 быстрых — те, у кого freq > 0 и они в топе по частоте
-    const quickNames = new Set(
-      sorted.filter(c => (freq[c.name] || 0) > 0).slice(0, 5).map(c => c.name)
-    );
+    let quick = sortedByFreq.slice(0, 5);
     
-    const container = $('categories'); 
+    // Если выбранная категория не в quick — заменим последнюю, чтобы она всегда была видна
+    if (!quick.find(c => c.name === state.selectedCategory)) {
+      const selected = indexed.find(c => c.name === state.selectedCategory);
+      if (selected) quick[quick.length - 1] = selected;
+    }
+    
+    const quickNames = new Set(quick.map(c => c.name));
+    const rest = indexed.filter(c => !quickNames.has(c.name));
+    
+    const container = $('categories');
     container.innerHTML = '';
     
-    // Сначала показываем быстрые (по частоте), затем остальные
-    const ordered = [...sorted.filter(c => quickNames.has(c.name)), ...sorted.filter(c => !quickNames.has(c.name))];
+    quick.forEach(c => container.appendChild(makeCatChip(c, true)));
     
-    ordered.forEach(c => {
-      const btn = document.createElement('button');
-      btn.type = 'button';
-      btn.className = 'chip' + (c.name === state.selectedCategory ? ' active' : '') + (quickNames.has(c.name) ? ' quick' : '');
-      
-      if (c.name === state.selectedCategory) {
-        btn.style.backgroundColor = c.bg;
-        btn.style.color = c.color;
-      }
-
-      btn.innerHTML = `${getIconHtml(c, 18)} ${c.name}`;
-      btn.onclick = () => { state.selectedCategory = c.name; renderCategories(); };
-      container.appendChild(btn);
-    });
+    if (state.categoriesExpanded) {
+      rest.forEach(c => container.appendChild(makeCatChip(c, false)));
+    }
+    
+    const toggleBtn = document.createElement('button');
+    toggleBtn.type = 'button';
+    toggleBtn.className = 'chip toggle-chip';
+    toggleBtn.innerHTML = state.categoriesExpanded
+      ? `<i class="ph-bold ph-caret-up"></i> Скрыть`
+      : `<i class="ph-bold ph-caret-down"></i> Ещё ${rest.length}`;
+    toggleBtn.onclick = () => {
+      state.categoriesExpanded = !state.categoriesExpanded;
+      renderCategories();
+    };
+    container.appendChild(toggleBtn);
   }
 
   function renderList() {
@@ -1778,6 +1897,7 @@
     $('editModal').onclick = (e) => { if (e.target === $('editModal')) closeEditModal(); };
     $('catPickerModal').onclick = (e) => { if (e.target === $('catPickerModal')) $('catPickerModal').style.display = 'none'; };
     $('followModal').onclick = (e) => { if (e.target === $('followModal')) $('followModal').style.display = 'none'; };
+    $('safeModal').onclick = (e) => { if (e.target === $('safeModal')) $('safeModal').style.display = 'none'; };
   }
 
   function renderBudgets() {
@@ -1843,7 +1963,7 @@
         div.onclick = () => {
           if (confirm(`Удалить бюджет «${cat}» на этот месяц?`)) {
             delete state.budgets[currentMonthKey][cat]; 
-            saveBudgets(); renderBudgets();
+            saveBudgets(); renderBudgets(); renderSafeToSpend();
           }
         };
         list.appendChild(div);
@@ -1891,8 +2011,6 @@
     $('budgetCategory').value = state.selectedBudgetCategory;
   }
 
-  // ============ CHARTS ============
-
   function renderPieChart() {
     if (typeof Chart === 'undefined') return;
     const ctx = $('pieChart');
@@ -1937,13 +2055,12 @@
     });
   }
 
-  // 10. График по дням недели
   function renderWeekdayChart() {
     if (typeof Chart === 'undefined') return;
     const ctx = $('weekdayChart');
     if (!ctx) return;
     if (state.weekdayChart) { state.weekdayChart.destroy(); state.weekdayChart = null; }
-    const days = [0,0,0,0,0,0,0]; // Пн..Вс
+    const days = [0,0,0,0,0,0,0];
     state.transactions.forEach(t => {
       if (t.type !== 'expense' || (t.currency || 'RUB') !== 'RUB') return;
       const d = new Date(t.date);
@@ -1960,7 +2077,6 @@
     });
   }
 
-  // 2. Сравнение с прошлым месяцем
   function renderMonthComparison() {
     const now = new Date();
     const thisKey = getMonthKey(now);
@@ -2012,7 +2128,6 @@
     container.innerHTML = html;
   }
 
-  // 12. Waterfall
   function renderWaterfall() {
     const canvas = $('waterfallCanvas');
     if (!canvas) return;
@@ -2100,7 +2215,6 @@
       ctx.fillStyle = item.color;
       ctx.fillRect(x, topY, barW, bottomY - topY);
       
-      // Соединительная линия
       if (i < items.length - 1) {
         const nextX = x + barW + gap;
         const lineY = item.isExpense ? bottomY : topY;
@@ -2113,14 +2227,12 @@
         ctx.setLineDash([]);
       }
       
-      // Подпись категории
       ctx.fillStyle = textColor;
       ctx.font = '10px -apple-system, sans-serif';
       ctx.textAlign = 'center';
       const label = item.label.length > 8 ? item.label.slice(0, 7) + '…' : item.label;
       ctx.fillText(label, x + barW / 2, H - padding.bottom + 16);
       
-      // Значение
       ctx.fillStyle = item.color;
       ctx.font = 'bold 10px -apple-system, sans-serif';
       const valText = item.value >= 1000 ? Math.round(item.value / 1000) + 'k' : Math.round(item.value);
@@ -2181,6 +2293,7 @@
     document.querySelectorAll('#transactions .type-toggle button').forEach(btn => {
       btn.onclick = () => {
         state.selectedType = btn.dataset.type;
+        state.categoriesExpanded = false;
         document.querySelectorAll('#transactions .type-toggle button').forEach(b => b.classList.toggle('active', b.dataset.type === state.selectedType));
         updateTransferFieldsVisibility();
         if (state.selectedType !== 'transfer') renderCategories();
@@ -2533,7 +2646,6 @@
     const now = new Date();
     const threeMonthsAgo = new Date(now.getFullYear(), now.getMonth() - 3, now.getDate());
     
-    // Накопления и долги
     let savings = 0, debts = 0;
     state.capital.forEach(c => {
       if (c.currency !== 'RUB' && c.currency) return;
@@ -2541,7 +2653,6 @@
       else if (c.type === 'debt') debts += c.amount;
     });
     
-    // Средний расход за 3 месяца
     let exp3 = 0, inc3 = 0;
     state.transactions.forEach(t => {
       if ((t.currency || 'RUB') !== 'RUB' || t.type === 'transfer') return;
@@ -2552,45 +2663,34 @@
     });
     const avgMonthlyExpense = exp3 / 3;
     
-    // 1. Подушка (30 баллов) — 6 месяцев = максимум
     const cushionMonths = avgMonthlyExpense > 0 ? savings / avgMonthlyExpense : 0;
     const cushionScore = Math.min(cushionMonths / 6 * 30, 30);
     
-    // 2. Доходы > расходов (20 баллов)
     let positiveScore = 0;
     if (exp3 === 0 && inc3 === 0) positiveScore = 0;
     else if (inc3 >= exp3) positiveScore = 20;
     else positiveScore = Math.max(0, (inc3 / exp3) * 20);
     
-    // 3. Долги < 30% накоплений (20 баллов)
     let debtScore = 0;
     if (debts === 0) debtScore = 20;
     else if (savings === 0) debtScore = 0;
     else if (debts / savings < 0.3) debtScore = 20;
     else if (debts / savings < 0.5) debtScore = 10;
     
-    // 4. Бюджеты ведутся (15 баллов)
     const currentBudgets = state.budgets[getMonthKey(now)] || {};
     const budgetScore = Object.keys(currentBudgets).length > 0 ? 15 : 0;
     
-    // 5. Регулярность (15 баллов) — 15+ операций за 30 дней = максимум
     const thirtyDaysAgo = new Date(now.getTime() - 30 * 24 * 60 * 60 * 1000);
     const recentTx = state.transactions.filter(t => new Date(t.date) >= thirtyDaysAgo).length;
     const regularityScore = Math.min(recentTx / 15 * 15, 15);
     
     const total = Math.round(cushionScore + positiveScore + debtScore + budgetScore + regularityScore);
     
-    // Кольцо
-    const ring = $('healthRing');
-    const color = total >= 80 ? 'var(--income)' : total >= 50 ? 'var(--warn)' : 'var(--expense)';
-    ring.textContent = total;
-    ring.style.color = color;
-    ring.style.background = `conic-gradient(${color} ${total * 3.6}deg, var(--input-bg) ${total * 3.6}deg)`;
-    ring.style.border = '4px solid var(--card)';
-    // Внутренний круг
-    ring.style.position = 'relative';
-    // Затемнение внутри через псевдоэлемент — невозможно без CSS, поэтому используем box-shadow
-    ring.style.boxShadow = 'inset 0 0 0 20px var(--card)';
+    const color = total >= 80 ? '#10b981' : total >= 50 ? '#f59e0b' : '#ef4444';
+    
+    $('healthRing').style.background = `conic-gradient(${color} ${total * 3.6}deg, var(--input-bg) 0deg)`;
+    $('healthScore').textContent = total;
+    $('healthScore').style.color = color;
     
     const statusEl = $('healthStatus');
     if (total >= 80) statusEl.textContent = 'Отлично 💚';
@@ -2598,7 +2698,6 @@
     else if (total > 0) statusEl.textContent = 'Есть над чем работать 🔴';
     else statusEl.textContent = 'Начните вести учёт';
     
-    // Разбивка
     const bd = $('healthBreakdown');
     bd.innerHTML = `
       <div class="health-row">
@@ -2644,7 +2743,7 @@
     `;
   }
 
-  // ============ SWIPE ============
+  // ============ SWIPE ITEMS ============
   function setupSwipeItems() {
     let activeEl = null, startX = 0, startY = 0, deltaX = 0, moved = false, cancelled = false;
     
@@ -2684,14 +2783,12 @@
       item.style.transition = 'transform 0.2s';
       
       if (deltaX > 80) {
-        // Редактировать
         const id = parseFloat(item.dataset.id);
         item.style.transform = '';
         suppressClick = true;
         setTimeout(() => suppressClick = false, 300);
         setTimeout(() => startEdit(id), 100);
       } else if (deltaX < -80) {
-        // Удалить
         item.style.transform = 'translateX(-110%)';
         suppressClick = true;
         setTimeout(() => suppressClick = false, 400);
